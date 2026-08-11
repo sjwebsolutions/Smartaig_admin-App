@@ -86,16 +86,23 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (detail.imageUrl != null) ...[
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      detail.imageUrl!,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: Image.network(
+                        detail.imageUrl!,
+                        width: double.infinity,
                         height: 200,
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                        fit: BoxFit.fill,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 200,
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                        ),
                       ),
                     ),
                   ),
@@ -115,7 +122,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withAlpha(40)),
+                    border: Border.all(color: Colors.grey.shade300, width: 1),
                   ),
                   child: Text(
                     detail.description,
@@ -198,7 +205,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.withAlpha(40)),
+            border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
           child: Column(
             children: children,

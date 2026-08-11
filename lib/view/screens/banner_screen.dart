@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:smart_aig_admins_app/view/screens/banner_details_screen.dart';
 import '../../view_models/getX/banner_controller.dart';
 import '../../models/banner_model.dart';
 import 'publish_banner_screen.dart';
@@ -69,7 +70,7 @@ class BannerScreen extends StatelessWidget {
         return RefreshIndicator(
           onRefresh: () => controller.fetchBanners(),
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
             itemCount: controller.banners.length,
             itemBuilder: (context, index) {
               final banner = controller.banners[index];
@@ -77,7 +78,7 @@ class BannerScreen extends StatelessWidget {
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.grey.withAlpha(40)),
+                  side: const BorderSide(color: Color(0xFF0038A8), width: 1.2),
                 ),
                 margin: const EdgeInsets.only(bottom: 16),
                 child: Column(
@@ -86,15 +87,18 @@ class BannerScreen extends StatelessWidget {
                     if (banner.imageUrl.isNotEmpty)
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                        child: Image.network(
-                          banner.imageUrl,
-                          width: double.infinity,
-                          height: 180,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            height: 180,
-                            color: Colors.grey[100],
-                            child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                        child: Container(
+                          color: Colors.grey[50], // Light background for non-filling images
+                          child: Image.network(
+                            banner.imageUrl,
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.fill,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 200,
+                              color: Colors.grey[100],
+                              child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                            ),
                           ),
                         ),
                       ),
@@ -125,19 +129,26 @@ class BannerScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 8),
                                   Transform.scale(
-                                    scale: 0.6,
+                                    scale: 0.7,
                                     child: Switch(
                                       value: banner.status == 1,
                                       onChanged: (_) => controller.toggleBannerStatus(banner.id),
                                       activeColor: Colors.green,
                                       activeTrackColor: Colors.green.withAlpha(100),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                   ),
                                 ],
                               ),
-                              Text(
-                                banner.publishedAt.split(' ')[0],
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today_outlined, size: 12, color: Colors.grey[400]),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    banner.publishedAt.split(' ')[0],
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -145,44 +156,80 @@ class BannerScreen extends StatelessWidget {
                           Text(
                             banner.bannerName,
                             style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF1E293B),
+                              letterSpacing: -0.2,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            "Category: ${banner.category}",
-                            style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0038A8).withAlpha(10),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              banner.category,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0038A8),
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: 12),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(height: 1, thickness: 0.5),
+                          ),
                           Row(
                             children: [
                               Expanded(
                                 child: Wrap(
                                   spacing: 12,
                                   runSpacing: 8,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
-                                    _buildInfoItem(Icons.person_outline, banner.targetScope),
-                                    _buildInfoItem(Icons.timer_outlined, "${banner.displayDays} Days"),
+                                    _buildInfoItem(Icons.person_pin_rounded, banner.targetScope),
+                                    _buildInfoItem(Icons.timer_rounded, "${banner.displayDays} Days"),
                                     if (banner.targetedAudiences.isNotEmpty)
-                                      _buildInfoItem(Icons.group_outlined, banner.targetedAudiences.join(', ')),
+                                      _buildInfoItem(Icons.groups_rounded, banner.targetedAudiences.join(', ')),
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              TextButton.icon(
-                                onPressed: () => Get.to(() => PublishBannerScreen(banner: banner)),
-                                icon: const Icon(Icons.settings_applications, size: 18, color: Color(0xFF1E293B)),
-                                label: const Text(
-                                  "Settings",
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => Get.to(() => BannerDetailsScreen(
+                                        imageUrl: banner.imageUrl,
+                                        title: banner.bannerName,
+                                      )),
+                                  icon: const Icon(Icons.visibility_outlined, size: 18),
+                                  label: const Text("View / Share"),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: BorderSide(color: Colors.red.withAlpha(50)),
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
                                 ),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  backgroundColor: Colors.grey.withAlpha(20),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => Get.to(() => PublishBannerScreen(banner: banner)),
+                                  icon: const Icon(Icons.rocket_launch_rounded, size: 18),
+                                  label: const Text("Release"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1E2E5D),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
                                 ),
                               ),
                             ],

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../view_models/getX/announcement_controller.dart';
 import 'announcement_detail_screen.dart';
 import 'add_announcement_screen.dart';
+import 'banner_details_screen.dart';
 
 class AnnouncementScreen extends StatelessWidget {
   const AnnouncementScreen({super.key});
@@ -51,7 +52,7 @@ class AnnouncementScreen extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () => Get.to(() =>  AddAnnouncementScreen()),
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: const Color(0xFF0038A8),
           child: const Icon(Icons.add, color: Colors.white),
         ),
         body: Obx(() {
@@ -83,249 +84,262 @@ class AnnouncementScreen extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.withAlpha(40)),
+                      side: const BorderSide(color: Color(0xFF0038A8), width: 1.2),
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            child: Image.network(
+                              announcement.imageUrl!,
+                              width: double.infinity,
+                              height: 160,
+                              fit: BoxFit.fill,
+                              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _getTypeColor(announcement.type).withAlpha(30),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  announcement.type.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: _getTypeColor(announcement.type),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: _getTypeColor(announcement.type).withAlpha(30),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      announcement.type.toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: _getTypeColor(announcement.type),
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Text(
+                                    announcement.fromDate,
+                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 12),
                               Text(
-                                announcement.fromDate,
-                                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            announcement.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            announcement.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          if (announcement.imageUrl != null) ...[
-                            const SizedBox(height: 12),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                announcement.imageUrl!,
-                                width: double.infinity,
-                                height: 150,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              const Icon(Icons.person_outline, size: 14, color: Colors.grey),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  announcement.createdBy,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                announcement.title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
                                 ),
                               ),
-                              Transform.scale(
-                                scale: 0.7,
-                                child: Switch(
-                                  value: announcement.status == 1,
-                                  activeColor: Colors.green,
-                                  onChanged: announcement.isEditable
-                                      ? (val) {
-                                          controller.toggleStatus(announcement.id);
+                              const SizedBox(height: 6),
+                              Text(
+                                announcement.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  const Icon(Icons.person_outline, size: 14, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      announcement.createdBy,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                    ),
+                                  ),
+                                  Transform.scale(
+                                    scale: 0.7,
+                                    child: Switch(
+                                      value: announcement.status == 1,
+                                      activeColor: Colors.green,
+                                      onChanged: announcement.isEditable
+                                          ? (val) {
+                                              controller.toggleStatus(announcement.id);
+                                            }
+                                          : null, // Disable if not editable
+                                    ),
+                                  ),
+                                  if (announcement.isEditable && 
+                                      announcement.submitStatus.toLowerCase() != 'locked' && 
+                                      announcement.submitStatus.toLowerCase() != 'submitted')
+                                    IconButton(
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      icon: const Icon(Icons.edit_note, size: 24, color: Colors.blue),
+                                      onPressed: () async {
+                                        Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+                                        await controller.fetchAnnouncementDetails(announcement.id);
+                                        Get.back(); // close loading dialog
+                                        if (controller.announcementDetail.value != null) {
+                                          Get.to(() => AddAnnouncementScreen(announcement: controller.announcementDetail.value));
                                         }
-                                      : null, // Disable if not editable
-                                ),
+                                      },
+                                    ),
+                                  if (announcement.isEditable) ...[
+                                    // Check if it's currently locked
+                                    if (announcement.submitStatus.toLowerCase() == 'locked' || 
+                                        announcement.submitStatus.toLowerCase() == 'submitted')
+                                      IconButton(
+                                        constraints: const BoxConstraints(),
+                                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                                        icon: const Icon(Icons.lock, size: 20, color: Colors.orange),
+                                        onPressed: () {
+                                          Get.dialog(
+                                            AlertDialog(
+                                              title: const Text("Unlock Announcement"),
+                                              content: const Text("Are you sure you want to unlock this announcement?"),
+                                              actions: [
+                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Get.back();
+                                                    controller.unlockAnnouncement(announcement.id);
+                                                  },
+                                                  child: const Text("Unlock", style: TextStyle(color: Colors.green)),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    else
+                                      IconButton(
+                                        constraints: const BoxConstraints(),
+                                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                                        icon: const Icon(Icons.lock_open, size: 20, color: Colors.green),
+                                        onPressed: () {
+                                          Get.dialog(
+                                            AlertDialog(
+                                              title: const Text("Lock Announcement"),
+                                              content: const Text("Are you sure you want to lock this announcement?"),
+                                              actions: [
+                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Get.back();
+                                                    controller.lockAnnouncement(announcement.id);
+                                                  },
+                                                  child: const Text("Lock", style: TextStyle(color: Colors.orange)),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                  if (announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty)
+                                    IconButton(
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      icon: const Icon(Icons.download, size: 20, color:Colors.red),
+                                      onPressed: () => Get.to(() => BannerDetailsScreen(
+                                        imageUrl: announcement.imageUrl!,
+                                        title: announcement.title,
+                                      )),
+                                    ),
+                                  if (announcement.isEditable)
+                                    IconButton(
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      icon: Icon(
+                                        announcement.publishStatus.toLowerCase().contains('publish')
+                                            ? Icons.unpublished
+                                            : Icons.publish,
+                                        size: 20,
+                                        color: announcement.publishStatus.toLowerCase().contains('publish')
+                                            ? Colors.redAccent
+                                            : Colors.indigo,
+                                      ),
+                                      onPressed: () {
+                                        if (announcement.publishStatus.toLowerCase().contains('publish')) {
+                                          Get.dialog(
+                                            AlertDialog(
+                                              title: const Text("Unpublish Announcement"),
+                                              content: const Text("Are you sure you want to unpublish this announcement?"),
+                                              actions: [
+                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    Get.back();
+                                                    controller.unpublishAnnouncement(announcement.id);
+                                                  },
+                                                  child: const Text("Unpublish", style: TextStyle(color: Colors.redAccent)),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        } else {
+                                          Get.bottomSheet(
+                                            Container(
+                                              padding: const EdgeInsets.all(20),
+                                              decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                              ),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Text(
+                                                    "PUBLISH TO",
+                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                                  ),
+                                                  const SizedBox(height: 20),
+                                                  _buildPublishOption(
+                                                    icon: Icons.person_outline,
+                                                    title: "Parents Only",
+                                                    color: Colors.blue,
+                                                    onTap: () {
+                                                      Get.back();
+                                                      controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 0);
+                                                    },
+                                                  ),
+                                                  _buildPublishOption(
+                                                    icon: Icons.school_outlined,
+                                                    title: "Teachers Only",
+                                                    color: Colors.orange,
+                                                    onTap: () {
+                                                      Get.back();
+                                                      controller.publishAnnouncement(announcement.id, sendToParents: 0, sendToTeachers: 1);
+                                                    },
+                                                  ),
+                                                  _buildPublishOption(
+                                                    icon: Icons.group_outlined,
+                                                    title: "Both Parents & Teachers",
+                                                    color: Colors.indigo,
+                                                    onTap: () {
+                                                      Get.back();
+                                                      controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 1);
+                                                    },
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                ],
                               ),
-                              if (announcement.isEditable && 
-                                  announcement.submitStatus.toLowerCase() != 'locked' && 
-                                  announcement.submitStatus.toLowerCase() != 'submitted')
-                                IconButton(
-                                  constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  icon: const Icon(Icons.edit_note, size: 24, color: Colors.blue),
-                                  onPressed: () async {
-                                    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-                                    await controller.fetchAnnouncementDetails(announcement.id);
-                                    Get.back(); // close loading dialog
-                                    if (controller.announcementDetail.value != null) {
-                                      Get.to(() => AddAnnouncementScreen(announcement: controller.announcementDetail.value));
-                                    }
-                                  },
-                                ),
-                              if (announcement.isEditable) ...[
-                                // Check if it's currently locked
-                                if (announcement.submitStatus.toLowerCase() == 'locked' || 
-                                    announcement.submitStatus.toLowerCase() == 'submitted')
-                                  IconButton(
-                                    constraints: const BoxConstraints(),
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    icon: const Icon(Icons.lock, size: 20, color: Colors.orange),
-                                    onPressed: () {
-                                      Get.dialog(
-                                        AlertDialog(
-                                          title: const Text("Unlock Announcement"),
-                                          content: const Text("Are you sure you want to unlock this announcement?"),
-                                          actions: [
-                                            TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
-                                            TextButton(
-                                              onPressed: () {
-                                                Get.back();
-                                                controller.unlockAnnouncement(announcement.id);
-                                              },
-                                              child: const Text("Unlock", style: TextStyle(color: Colors.green)),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  )
-                                else
-                                  IconButton(
-                                    constraints: const BoxConstraints(),
-                                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                                    icon: const Icon(Icons.lock_open, size: 20, color: Colors.green),
-                                    onPressed: () {
-                                      Get.dialog(
-                                        AlertDialog(
-                                          title: const Text("Lock Announcement"),
-                                          content: const Text("Are you sure you want to lock this announcement?"),
-                                          actions: [
-                                            TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
-                                            TextButton(
-                                              onPressed: () {
-                                                Get.back();
-                                                controller.lockAnnouncement(announcement.id);
-                                              },
-                                              child: const Text("Lock", style: TextStyle(color: Colors.orange)),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                              ],
-                              if (announcement.isEditable)
-                                IconButton(
-                                  constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                                  icon: Icon(
-                                    announcement.publishStatus.toLowerCase().contains('publish')
-                                        ? Icons.unpublished
-                                        : Icons.publish,
-                                    size: 20,
-                                    color: announcement.publishStatus.toLowerCase().contains('publish')
-                                        ? Colors.redAccent
-                                        : Colors.indigo,
-                                  ),
-                                  onPressed: () {
-                                    if (announcement.publishStatus.toLowerCase().contains('publish')) {
-                                      Get.dialog(
-                                        AlertDialog(
-                                          title: const Text("Unpublish Announcement"),
-                                          content: const Text("Are you sure you want to unpublish this announcement?"),
-                                          actions: [
-                                            TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
-                                            TextButton(
-                                              onPressed: () {
-                                                Get.back();
-                                                controller.unpublishAnnouncement(announcement.id);
-                                              },
-                                              child: const Text("Unpublish", style: TextStyle(color: Colors.redAccent)),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    } else {
-                                      Get.bottomSheet(
-                                        Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                          ),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Text(
-                                                "PUBLISH TO",
-                                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                                              ),
-                                              const SizedBox(height: 20),
-                                              _buildPublishOption(
-                                                icon: Icons.person_outline,
-                                                title: "Parents Only",
-                                                color: Colors.blue,
-                                                onTap: () {
-                                                  Get.back();
-                                                  controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 0);
-                                                },
-                                              ),
-                                              _buildPublishOption(
-                                                icon: Icons.school_outlined,
-                                                title: "Teachers Only",
-                                                color: Colors.orange,
-                                                onTap: () {
-                                                  Get.back();
-                                                  controller.publishAnnouncement(announcement.id, sendToParents: 0, sendToTeachers: 1);
-                                                },
-                                              ),
-                                              _buildPublishOption(
-                                                icon: Icons.group_outlined,
-                                                title: "Both Parents & Teachers",
-                                                color: Colors.indigo,
-                                                onTap: () {
-                                                  Get.back();
-                                                  controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 1);
-                                                },
-                                              ),
-                                              const SizedBox(height: 10),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 );

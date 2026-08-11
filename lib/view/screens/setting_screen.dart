@@ -56,35 +56,43 @@ class _SettingScreenState extends State<SettingScreen> {
               const SizedBox(height: 10),
               _buildLegalCard(),
               const SizedBox(height: 10),
-              Obx(() => SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: authController.isLoading.value 
+              Obx(() => Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ListTile(
+                  onTap: authController.isLoading.value 
                     ? null 
                     : () => _showLogoutDialog(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[50],
-                    foregroundColor: Colors.red,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(color: Colors.red[100]!),
+                  leading: authController.isLoading.value
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                      )
+                    : const Icon(Icons.logout_rounded, color: Colors.red, size: 24),
+                  title: const Text(
+                    "Logout",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
                     ),
                   ),
-                  child: authController.isLoading.value
-                    ? const CircularProgressIndicator(color: Colors.red)
-                    : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.logout_rounded),
-                          SizedBox(width: 10),
-                          Text(
-                            "Logout",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                  subtitle: const Text(
+                    "Sign out from this device",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
                 ),
               )),
               const SizedBox(height: 10),

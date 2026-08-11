@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../models/banner_model.dart';
 import '../../view_models/getX/banner_controller.dart';
@@ -99,101 +100,281 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
           ),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
+              bottomLeft: Radius.circular(10),
+              bottomRight: Radius.circular(10),
             ),
           ),
         ),
         body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Banner Preview
+              // Banner Preview Section
               Container(
                 width: double.infinity,
-                height: 150,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  image: DecorationImage(
-                    image: NetworkImage(widget.banner.imageUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                widget.banner.bannerName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                softWrap: true,
-              ),
-              const SizedBox(height: 24),
-
-              _buildSectionTitle("Target Audience"),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                child: Column(
-                  children: [
-                    CheckboxListTile(
-                      title: const Text("Parents"),
-                      value: _audienceParents,
-                      onChanged: (val) => setState(() => _audienceParents = val ?? false),
-                      activeColor: const Color(0xFF1E293B),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
-                    const Divider(height: 1),
-                    CheckboxListTile(
-                      title: const Text("Teachers"),
-                      value: _audienceTeachers,
-                      onChanged: (val) => setState(() => _audienceTeachers = val ?? false),
-                      activeColor: const Color(0xFF1E293B),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                      child: Image.network(
+                        widget.banner.imageUrl,
+                        width: double.infinity,
+                        height: 180,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 180,
+                          color: Colors.grey[100],
+                          child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        widget.banner.bannerName,
+                        style: const TextStyle(
+                          fontSize: 18, 
+                          fontWeight: FontWeight.bold, 
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 10),
 
-              const SizedBox(height: 24),
-              _buildSectionTitle("Target Type"),
-              Column(
-                children: [
-                  _buildRadioButton("All Students", 'all'),
-                  _buildRadioButton("Specific Classes", 'specific'),
-                ],
+              // Target Audience Section
+              const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.people_outline_rounded, size: 20, color: Color(0xFF0038A8)),
+                    SizedBox(width: 8),
+                    Text(
+                      "TARGET AUDIENCE",
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF64748B), 
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildCheckboxTile(
+                          title: "Parents",
+                          value: _audienceParents,
+                          onChanged: (val) => setState(() => _audienceParents = val ?? false),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildCheckboxTile(
+                          title: "Teachers",
+                          value: _audienceTeachers,
+                          onChanged: (val) => setState(() => _audienceTeachers = val ?? false),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
-              if (_targetType == 'specific') ...[
-                const SizedBox(height: 16),
-                _buildClassSelection(),
-              ],
+              const SizedBox(height: 10),
 
-              const SizedBox(height: 24),
-              _buildSectionTitle("Display Duration"),
-              TextFormField(
-                controller: _daysController,
-                keyboardType: TextInputType.number,
-                decoration: _inputDecoration("Enter number of days", suffix: "Days"),
-                validator: (val) => val == null || val.isEmpty ? "Required" : null,
+              // Target Type Section
+              const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.track_changes_rounded, size: 20, color: Color(0xFF0038A8)),
+                    SizedBox(width: 8),
+                    Text(
+                      "TARGET TYPE",
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF64748B), 
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Expanded(child: _buildInlineRadioTile("All Students", "all")),
+                          Expanded(child: _buildInlineRadioTile("Specific Classes", "specific")),
+                        ],
+                      ),
+                    ),
+                    if (_targetType == 'specific') ...[
+                      const Divider(height: 1),
+                      const SizedBox(height: 8),
+                      _buildClassSelection(),
+                    ],
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 10),
+
+              // Duration Section
+              const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.timer_outlined, size: 20, color: Color(0xFF0038A8)),
+                    SizedBox(width: 8),
+                    Text(
+                      "DISPLAY DURATION",
+                      style: TextStyle(
+                        fontSize: 12, 
+                        fontWeight: FontWeight.bold, 
+                        color: Color(0xFF64748B), 
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "How many days should this banner be visible?",
+                        style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _daysController,
+                        keyboardType: TextInputType.number,
+                        maxLength: 1,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        onChanged: (value) {
+                          if (value.isNotEmpty) {
+                            int? val = int.tryParse(value);
+                            if (val != null && (val > 5 || val == 0)) {
+                              _daysController.clear();
+                              Get.snackbar(
+                                "Alert",
+                                "Only 1 to 5 days are allowed",
+                                backgroundColor: Colors.red,
+                                colorText: Colors.white,
+                                snackPosition: SnackPosition.TOP,
+                                duration: const Duration(seconds: 2),
+                              );
+                            }
+                          }
+                        },
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        decoration: _inputDecoration("Enter days (1-5)", suffix: "DAYS"),
+                        validator: (val) {
+                          if (val == null || val.isEmpty) return "Required";
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Submit Button
               SizedBox(
                 width: double.infinity,
-                height: 55,
+                height: 58,
                 child: Obx(() => ElevatedButton(
                   onPressed: controller.isPublishing.value ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E293B),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: const Color(0xFF0038A8),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: const Color(0xFF1E2E5D).withOpacity(0.4),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   child: controller.isPublishing.value
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("PUBLISH BANNER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.rocket_launch_rounded),
+                            SizedBox(width: 10),
+                            Text(
+                              "PUBLISH BANNER", 
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1),
+                            ),
+                          ],
+                        ),
                 )),
               ),
               const SizedBox(height: 40),
@@ -204,28 +385,108 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     ));
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, left: 4),
-      child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1)),
+  Widget _buildSectionCard({required String title, required IconData icon, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: const Color(0xFF0038A8)),
+                const SizedBox(width: 8),
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 12, 
+                    fontWeight: FontWeight.bold, 
+                    color: Color(0xFF64748B), 
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          child,
+        ],
+      ),
     );
   }
 
-  Widget _buildRadioButton(String title, String value) {
+  Widget _buildCheckboxTile({required String title, required bool value, required Function(bool?) onChanged}) {
+    return CheckboxListTile(
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      value: value,
+      onChanged: onChanged,
+      activeColor: const Color(0xFF0038A8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      controlAffinity: ListTileControlAffinity.leading,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  Widget _buildTabButton(String title, bool isSelected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF0038A8) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected ? [
+              BoxShadow(
+                color: const Color(0xFF0038A8).withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              )
+            ] : null,
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : Colors.grey.shade600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInlineRadioTile(String title, String value) {
     return InkWell(
       onTap: () => setState(() => _targetType = value),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Radio<String>(
             value: value,
             groupValue: _targetType,
             onChanged: (val) => setState(() => _targetType = val!),
-            activeColor: const Color(0xFF1E293B),
+            activeColor: const Color(0xFF0038A8),
+            visualDensity: VisualDensity.compact,
           ),
-          Expanded(
+          Flexible(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -233,43 +494,59 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     );
   }
 
+  Widget _buildRadioTile(String title, String value) {
+    return RadioListTile<String>(
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+      value: value,
+      groupValue: _targetType,
+      onChanged: (val) => setState(() => _targetType = val!),
+      activeColor: const Color(0xFF0038A8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      controlAffinity: ListTileControlAffinity.leading,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
   Widget _buildClassSelection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("Select Classes", style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B))),
-        const SizedBox(height: 8),
-        Obx(() {
-          if (controller.isLoadingClasses.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-            child: Wrap(
-              spacing: 8,
-              children: controller.bannerClasses.map((c) {
-                final isSelected = _selectedClassIds.contains(c.id);
-                return FilterChip(
-                  label: Text(c.name),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedClassIds.add(c.id);
-                      } else {
-                        _selectedClassIds.remove(c.id);
-                      }
-                    });
-                  },
-                  selectedColor: Colors.blue.withAlpha(40),
-                  checkmarkColor: const Color(0xFF1E293B),
-                );
-              }).toList(),
-            ),
-          );
-        }),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Obx(() {
+        if (controller.isLoadingClasses.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: controller.bannerClasses.map((c) {
+            final isSelected = _selectedClassIds.contains(c.id);
+            return FilterChip(
+              label: Text(c.name),
+              selected: isSelected,
+              onSelected: (selected) {
+                setState(() {
+                  if (selected) {
+                    _selectedClassIds.add(c.id);
+                  } else {
+                    _selectedClassIds.remove(c.id);
+                  }
+                });
+              },
+              selectedColor: const Color(0xFF0038A8).withOpacity(0.1),
+              checkmarkColor: const Color(0xFF0038A8),
+              labelStyle: TextStyle(
+                color: isSelected ? const Color(0xFF0038A8) : const Color(0xFF1E293B),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(
+                  color: isSelected ? const Color(0xFF0038A8) : Colors.grey.shade300,
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      }),
     );
   }
 
@@ -277,12 +554,14 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     return InputDecoration(
       hintText: hint,
       suffixText: suffix,
+      suffixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0038A8)),
       filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF1E293B))),
+      fillColor: const Color(0xFFF8FAFC),
+      counterText: "",
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade200)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF0038A8), width: 2)),
     );
   }
 }

@@ -1,11 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/auth_response_model.dart';
 import 'package:smart_aig_admins_app/models/dashboard_model.dart';
 import 'package:smart_aig_admins_app/models/billing_model.dart';
+
+import '../view/screens/auth/login_screen.dart';
 
 class AuthService {
   static const String baseUrl = 'https://smartaig.com/api/v1';
@@ -111,12 +117,29 @@ class AuthService {
 
       if (response.statusCode == 200) {
         return DashboardModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        // Token expired or invalid - Force Logout
+        _forceLogout();
+        return DashboardModel(success: false);
       } else {
         return DashboardModel(success: false);
       }
     } catch (e) {
       return DashboardModel(success: false);
     }
+  }
+
+  void _forceLogout() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Get.offAll(() => const LoginScreen());
+    Get.snackbar(
+      "Session Expired",
+      "Please login again",
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
   }
 
   Future<BillingModel> getBillings() async {
@@ -135,6 +158,9 @@ class AuthService {
 
       if (response.statusCode == 200) {
         return BillingModel.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
+        _forceLogout();
+        return BillingModel(success: false, data: []);
       } else {
         return BillingModel(success: false, data: []);
       }

@@ -26,40 +26,50 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
-      // Start initialization as soon as SplashScreen is shown
+      // 1. Initialize Firebase
       await Firebase.initializeApp();
       
-      // Initialize Analytics
+      // 2. Initialize Analytics & Crashlytics
       FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-
-      // Initialize Crashlytics
       FlutterError.onError = (errorDetails) {
         FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
       };
-      
       PlatformDispatcher.instance.onError = (error, stack) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
       };
 
-      // Initialize Notification Service
-      await Get.putAsync(() => NotificationService().init());
+      // 3. Initialize Notification Service
+      try {
+        await Get.putAsync(() => NotificationService().init());
+      } catch (e) {
+        debugPrint("Notification init failed, continuing: $e");
+      }
 
-      // Check Login Status
+    } catch (e) {
+      debugPrint("Core initialization error: $e");
+      // Continue anyway to try and show at least the login/main screen
+    } finally {
+      // Check Auth status regardless of init success/fail
+      _checkAuthStatus();
+    }
+  }
+
+  Future<void> _checkAuthStatus() async {
+    try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
-      // Stay on splash screen for at least 2 seconds for branding
+      // Ensure splash is visible for at least 2 seconds
       await Future.delayed(const Duration(seconds: 2));
 
-      if (token != null && token.isNotEmpty) {
+      if (token != null && token.isNotEmpty && token != 'null') {
         Get.offAll(() => const MainScreen());
       } else {
         Get.offAll(() => const LoginScreen());
       }
     } catch (e) {
-      debugPrint("Error during initialization: $e");
-      // Even if there's an error, try to go to Login screen
+      debugPrint("Auth check error: $e");
       Get.offAll(() => const LoginScreen());
     }
   }
@@ -67,79 +77,94 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F7FF),
-      body: Stack(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // SplashScreen Logo Image
-                Image.asset(
-                  "assets/images/splash_logo.png",
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Smart AIG Admins App",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0038A8),
+      backgroundColor: Colors.white,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.white,
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      "assets/images/splash_logo.png",
+                      width: 150,
+                      height: 150,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 10),
+                  const Text(
+                    "SMART AIG ADMIN APP",
+                    style: TextStyle(
+                      fontSize: 17,
+                      color: Color(0xFF0038A8),
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 60),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: const Color(0xFF0038A8).withOpacity(0.2),
+                            thickness: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            "Administrative Informative Group",
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: const Color(0xFF0038A8).withOpacity(0.5),
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: const Color(0xFF0038A8).withOpacity(0.2),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 50),
+                child: Column(
                   children: [
-                    Container(width: 40, height: 1, color: Colors.grey[400]),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Text(
-                        "ONE SCHOOL ONE APP",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                          letterSpacing: 1.5,
+                    SizedBox(
+                      width: 180,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: const LinearProgressIndicator(
+                          minHeight: 5,
+                          backgroundColor: Color(0xFFF5F5F5),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF0038A8),
+                          ),
                         ),
                       ),
                     ),
-                    Container(width: 40, height: 1, color: Colors.grey[400]),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 60,
-            left: 50,
-            right: 50,
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: const LinearProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0038A8)),
-                    backgroundColor: Color(0xFFE2E8F0),
-                    minHeight: 4,
-                  ),
-                ),
-                const SizedBox(height: 15),
-                const Text(
-                  "AI-Driven Educational Intelligence",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF94A3B8),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

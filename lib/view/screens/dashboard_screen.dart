@@ -5,8 +5,11 @@ import 'package:smart_aig_admins_app/view/screens/deadlines_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/announcement_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/banner_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/billing_screen.dart';
+import 'package:smart_aig_admins_app/view_models/getX/meeting_controller.dart';
+import 'package:smart_aig_admins_app/view_models/getX/deadlines_controller.dart';
 
 import '../../view_models/getX/dashboard_controller.dart';
+import 'assets_report.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -14,6 +17,8 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DashboardController controller = Get.find<DashboardController>();
+    final MeetingController meetingController = Get.put(MeetingController());
+    final DeadlinesController deadlinesController = Get.put(DeadlinesController());
 
     return Container(
       decoration: const BoxDecoration(
@@ -39,7 +44,11 @@ class DashboardScreen extends StatelessWidget {
         }
 
         return RefreshIndicator(
-          onRefresh: () => controller.fetchDashboardData(),
+          onRefresh: () async {
+            await controller.fetchDashboardData();
+            await meetingController.fetchMeetings();
+            await deadlinesController.fetchDeadlines();
+          },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
@@ -50,37 +59,65 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // User Info Section
-                      Row(
-                        children: [
-                          Text(
-                            "Logged by: ",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                      // School Logo & Name Section
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                border: Border.all(color: const Color(0xFF0038A8).withOpacity(0.1), width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: data.school.logo != null && data.school.logo!.isNotEmpty
+                                    ? Image.network(
+                                        data.school.logo!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => const Center(
+                                          child: Icon(
+                                            Icons.school_rounded,
+                                            size: 40,
+                                            color: Color(0xFF0038A8),
+                                          ),
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          Icons.school_rounded,
+                                          size: 40,
+                                          color: Color(0xFF0038A8),
+                                        ),
+                                      ),
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              data.teacher.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 10),
+                            Text(
+                              data.school.schoolName,
+                              textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontSize: 16,
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1E293B),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
-                      // School Info Card (Name & Membership)
+                      // Information Card (Unified)
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.all(15),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
@@ -94,87 +131,21 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  "School Name : ",
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    data.school.schoolName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10),
-                              child: Divider(height: 1, thickness: 0.5),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  "AIG Membership ID : ",
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    data.school.aigMembershipId,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            _buildListRow("Logged By :", data.teacher.name),
+                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
+                            _buildListRow("AIG Membership ID :", data.school.aigMembershipId),
+                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
+                            _buildListRow("Validity Till :", data.school.validityTill),
+                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
+                            _buildListRow("School ID :", data.school.schoolCode),
+                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
+                            _buildListRow("Total Students :", data.totalActiveStudents.toString()),
+                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
+                            _buildListRow("Total Teachers :", data.totalActiveTeachers.toString()),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-
-                      // School ID & Validity Card
-                      Container(
-                        padding: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(10),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(child: _buildInfoItem("School ID", data.school.schoolCode)),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              child: Container(
-                                height: 25,
-                                width: 1,
-                                color: Colors.grey.withAlpha(50),
-                              ),
-                            ),
-                            Expanded(child: _buildInfoItem("Validity Till", data.school.validityTill, crossAxisAlignment: CrossAxisAlignment.end)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Stats Row
-                      Row(
-                        children: [
-                          _buildStatCard("Total Students", data.totalActiveStudents.toString()),
-                          const SizedBox(width: 10),
-                          _buildStatCard("Total Teachers", data.totalActiveTeachers.toString()),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 15),
 
                       // Administration Card (The "Modules" Container)
                       Container(
@@ -220,14 +191,14 @@ class DashboardScreen extends StatelessWidget {
                               shrinkWrap: true,
                               padding: EdgeInsets.zero,
                               physics: const NeverScrollableScrollPhysics(),
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 0.7, // Adjusted for more vertical space in 4-column layout
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 4,
+                              mainAxisSpacing: 15,
+                              childAspectRatio: 1.2,
                               children: [
                                 _buildGridMenuItem(
                                   icon: Icons.campaign_rounded,
-                                  color: const Color(0xFF3B82F6), // Modern Blue
+                                  color: const Color(0xFF3B82F6),
                                   title: "Announcement",
                                   onTap: () {
                                     Navigator.push(
@@ -236,31 +207,44 @@ class DashboardScreen extends StatelessWidget {
                                     );
                                   },
                                 ),
-                                _buildGridMenuItem(
-                                  icon: Icons.groups_rounded,
-                                  color: const Color(0xFF10B981), // Modern Emerald
-                                  title: "Meetings",
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => MeetingScreen()),
-                                    );
-                                  },
-                                ),
-                                _buildGridMenuItem(
-                                  icon: Icons.event_available_rounded,
-                                  color: const Color(0xFFF59E0B), // Modern Amber
-                                  title: "Deadlines",
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const DeadlinesScreen()),
-                                    );
-                                  },
-                                ),
+                                Obx(() {
+                                  final upcomingCount = meetingController.todayOngoingMeetings.length;
+                                  
+                                  return _buildGridMenuItem(
+                                    icon: Icons.groups_rounded,
+                                    color: const Color(0xFF10B981),
+                                    title: "Meetings",
+                                    badgeCount: upcomingCount > 0 ? upcomingCount : null,
+                                    badgeColor: const Color(0xFF47CB51),
+                                    badgeBorderColor: const Color(0xFFA5F7BA),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => MeetingScreen()),
+                                      );
+                                    },
+                                  );
+                                }),
+                                Obx(() {
+                                  final upcomingDeadlinesCount = deadlinesController.deadlinesList.where((d) => (d.daysRemaining ?? 0) >= 0).length;
+                                  return _buildGridMenuItem(
+                                    icon: Icons.event_available_rounded,
+                                    color: const Color(0xFFF59E0B),
+                                    title: "Deadlines",
+                                    badgeCount: upcomingDeadlinesCount > 0 ? upcomingDeadlinesCount : null,
+                                    badgeColor: Colors.red,
+                                    isBlinking: false,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const DeadlinesScreen()),
+                                      );
+                                    },
+                                  );
+                                }),
                                 _buildGridMenuItem(
                                   icon: Icons.view_carousel_rounded,
-                                  color: const Color(0xFF8B5CF6), // Modern Violet
+                                  color: const Color(0xFF8B5CF6),
                                   title: "Banners",
                                   onTap: () {
                                     Navigator.push(
@@ -271,12 +255,23 @@ class DashboardScreen extends StatelessWidget {
                                 ),
                                 _buildGridMenuItem(
                                   icon: Icons.account_balance_wallet_rounded,
-                                  color: const Color(0xFFEC4899), // Modern Pink
+                                  color: const Color(0xFFEC4899),
                                   title: "Billing",
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (context) => const BillingScreen()),
+                                    );
+                                  },
+                                ),
+                                _buildGridMenuItem(
+                                  icon: Icons.assessment_rounded,
+                                  color: const Color(0xFF0EA5E9), // Modern Sky Blue
+                                  title: "Assets Report",
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const AssetsReport()),
                                     );
                                   },
                                 ),
@@ -298,6 +293,29 @@ class DashboardScreen extends StatelessWidget {
     ));
   }
 
+  Widget _buildListRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey[500], fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoItem(String label, String value, {CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.start}) {
     return Column(
       crossAxisAlignment: crossAxisAlignment,
@@ -317,76 +335,82 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(8),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 11, color: Colors.grey[600], fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildGridMenuItem({
     required IconData icon,
     required Color color,
     required String title,
     VoidCallback? onTap,
+    int? badgeCount,
+    Color? badgeColor,
+    Color? badgeBorderColor,
+    Color? iconBgColor,
+    bool isBlinking = true,
   }) {
+    Widget badge = Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: badgeColor ?? Colors.red,
+        shape: BoxShape.circle,
+        border: Border.all(color: badgeBorderColor ?? Colors.white, width: 2),
+      ),
+      constraints: const BoxConstraints(
+        minWidth: 20,
+        minHeight: 20,
+      ),
+      child: Center(
+        child: Text(
+          badgeCount?.toString() ?? "",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: color.withAlpha(20), width: 1),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withAlpha(10),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(6),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: color.withAlpha(20),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: color.withAlpha(20), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withAlpha(10),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: iconBgColor ?? color.withAlpha(20),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
+                ),
               ),
-            ),
+              if (badgeCount != null && badgeCount > 0)
+                Positioned(
+                  top: -5,
+                  right: -5,
+                  child: isBlinking ? BlinkingBadge(child: badge) : badge,
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -401,6 +425,44 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class BlinkingBadge extends StatefulWidget {
+  final Widget child;
+  const BlinkingBadge({super.key, required this.child});
+
+  @override
+  State<BlinkingBadge> createState() => _BlinkingBadgeState();
+}
+
+class _BlinkingBadgeState extends State<BlinkingBadge> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: Tween(begin: 0.9, end: 1.1).animate(_controller),
+      child: FadeTransition(
+        opacity: Tween(begin: 0.6, end: 1.0).animate(_controller),
+        child: widget.child,
       ),
     );
   }

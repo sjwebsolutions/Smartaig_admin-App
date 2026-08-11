@@ -155,13 +155,16 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             children: [
               _buildSectionTitle("General Details"),
               _buildTextField("Title", _titleController, "Enter title"),
-              const SizedBox(height: 16),
-              _buildTextField("Description", _descController, "Enter description", maxLines: 4),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+              _buildTextField("Description", _descController, "Enter description", maxLines: 3),
+              const SizedBox(height: 12),
               
               _buildDropdownSection("Announcement Type", 
                 Obx(() => DropdownButtonFormField<int>(
                   value: _selectedTypeId,
+                  dropdownColor: Colors.white,
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF0038A8)),
+                  borderRadius: BorderRadius.circular(12),
                   items: controller.announcementTypes.map((type) {
                     return DropdownMenuItem(value: type.id, child: Text(type.name));
                   }).toList(),
@@ -170,11 +173,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                   validator: (val) => val == null ? "Required" : null,
                 ))
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildSectionTitle("Image (Optional)"),
               _buildImagePicker(screenHeight),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildSectionTitle("Schedule"),
               Row(
                 children: [
@@ -184,7 +187,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                 ],
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               _buildSectionTitle("Target Audience"),
               Row(
                 children: [
@@ -206,8 +209,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                 child: Obx(() => ElevatedButton(
                   onPressed: controller.isSubmitting.value ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundColor: const Color(0xFF0038A8),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 2,
                   ),
                   child: controller.isSubmitting.value
                       ? const CircularProgressIndicator(color: Colors.white)
@@ -327,7 +331,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade100),
+        border: Border.all(color: const Color(0xFF0038A8), width: 1.2),
       ),
       child: Column(
         children: [
@@ -383,17 +387,22 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
   }
 
   Widget _buildImagePicker(double screenHeight) {
+    final bool hasImage = _imageFile != null || _existingImageUrl != null;
     return InkWell(
       onTap: _showImageSourceDialog,
+      borderRadius: BorderRadius.circular(10),
       child: Container(
         width: double.infinity,
         height: screenHeight * 0.2, // Responsive height (20% of screen)
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasImage ? const Color(0xFF0038A8) : Colors.grey.shade300,
+            width: hasImage ? 1.5 : 1,
+          ),
         ),
-        child: _imageFile == null && _existingImageUrl == null
+        child: !hasImage
             ? const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -406,7 +415,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     child: _imageFile != null
                         ? Image.file(_imageFile!, fit: BoxFit.cover)
                         : Image.network(_existingImageUrl!, fit: BoxFit.cover),
@@ -437,9 +446,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
       hintText: hint,
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1)),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1.5)),
     );
   }
 

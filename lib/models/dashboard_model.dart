@@ -92,6 +92,7 @@ class SchoolModel {
   final String schoolCode;
   final String aigMembershipId;
   final String validityTill;
+  final String? logo;
 
   SchoolModel({
     required this.id,
@@ -99,6 +100,7 @@ class SchoolModel {
     required this.schoolCode,
     required this.aigMembershipId,
     required this.validityTill,
+    this.logo,
   });
 
   factory SchoolModel.fromJson(Map<String, dynamic> json) {
@@ -108,6 +110,7 @@ class SchoolModel {
       schoolCode: json['school_code'] ?? '',
       aigMembershipId: json['aig_membership_id'] ?? '',
       validityTill: json['validity_till'] ?? '',
+      logo: json['logo'],
     );
   }
 
@@ -118,6 +121,7 @@ class SchoolModel {
       'school_code': schoolCode,
       'aig_membership_id': aigMembershipId,
       'validity_till': validityTill,
+      'logo': logo,
     };
   }
 }
