@@ -17,7 +17,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   final List<String> _titles = [
-    'DASHBOARD',
+    'ADMINS DASHBOARD',
     'BANNER',
     'MEETINGS',
     'SETTING',

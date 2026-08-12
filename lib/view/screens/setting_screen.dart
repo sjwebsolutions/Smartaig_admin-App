@@ -52,6 +52,8 @@ class _SettingScreenState extends State<SettingScreen> {
           padding: const EdgeInsets.all(20.0),
           child: Column(
             children: [
+              _buildProfileCard(),
+              const SizedBox(height: 10),
               _buildPhoneCard(),
               const SizedBox(height: 10),
               _buildLegalCard(),
@@ -59,7 +61,7 @@ class _SettingScreenState extends State<SettingScreen> {
               Obx(() => Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
@@ -99,6 +101,50 @@ class _SettingScreenState extends State<SettingScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileCard() {
+    return Obx(() {
+      final user = dashboardController.dashboardData.value?.teacher;
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: _buildListRow("Logged By :", user?.name ?? "N/A"),
+      );
+    });
+  }
+
+  Widget _buildListRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
+          ),
+        ],
       ),
     );
   }

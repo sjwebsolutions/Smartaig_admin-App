@@ -110,49 +110,50 @@ class DashboardScreen extends StatelessWidget {
                                 color: Color(0xFF1E293B),
                               ),
                             ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "ID: ${data.school.schoolCode}",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 20),
 
-                      // Information Card (Unified)
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withAlpha(10),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                      // Statistics Section
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildStatCard(
+                              icon: Icons.people_alt_rounded,
+                              color: const Color(0xFF6366F1),
+                              title: "Total Students",
+                              value: data.totalActiveStudents.toString(),
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            _buildListRow("Logged By :", data.teacher.name),
-                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
-                            _buildListRow("AIG Membership ID :", data.school.aigMembershipId),
-                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
-                            _buildListRow("Validity Till :", data.school.validityTill),
-                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
-                            _buildListRow("School ID :", data.school.schoolCode),
-                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
-                            _buildListRow("Total Students :", data.totalActiveStudents.toString()),
-                            const Divider(height: 1, thickness: 0.5, indent: 15, endIndent: 15),
-                            _buildListRow("Total Teachers :", data.totalActiveTeachers.toString()),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildStatCard(
+                              icon: Icons.school_rounded,
+                              color: const Color(0xFF10B981),
+                              title: "Total Teachers",
+                              value: data.totalActiveTeachers.toString(),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 10),
 
                       // Administration Card (The "Modules" Container)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withAlpha(8),
@@ -164,28 +165,28 @@ class DashboardScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 3,
-                                  height: 14,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0038A8),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  "Communication Modules",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 15),
+                            // Row(
+                            //   children: [
+                            //     // Container(
+                            //     //   width: 3,
+                            //     //   height: 14,
+                            //     //   decoration: BoxDecoration(
+                            //     //     color: const Color(0xFF0038A8),
+                            //     //     borderRadius: BorderRadius.circular(10),
+                            //     //   ),
+                            //     //),
+                            //     const SizedBox(width: 8),
+                            //     // const Text(
+                            //     //   "Communication Modules",
+                            //     //   style: TextStyle(
+                            //     //     fontSize: 14,
+                            //     //     fontWeight: FontWeight.bold,
+                            //     //     color: Color(0xFF1E293B),
+                            //     //   ),
+                            //     // ),
+                            //   ],
+                            // ),
+                            // const SizedBox(height: 10),
                             // Admin Menu Grid
                             GridView.count(
                               shrinkWrap: true,
@@ -291,6 +292,58 @@ class DashboardScreen extends StatelessWidget {
         );
       }),
     ));
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withAlpha(20),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
+            ),
+          ),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildListRow(String label, String value) {
