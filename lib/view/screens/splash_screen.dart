@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       // 1. Initialize Firebase
       await Firebase.initializeApp();
-      
+
       // 2. Initialize Analytics & Crashlytics
       FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
       FlutterError.onError = (errorDetails) {
@@ -45,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen> {
       } catch (e) {
         debugPrint("Notification init failed, continuing: $e");
       }
-
     } catch (e) {
       debugPrint("Core initialization error: $e");
       // Continue anyway to try and show at least the login/main screen

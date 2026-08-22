@@ -33,4 +33,29 @@ class TeacherAttendanceService {
       return TeacherAttendanceReportModel(success: false);
     }
   }
+
+  Future<Map<String, dynamic>> sendAttendanceReminder(String teacherUid) async {
+    final url = Uri.parse('$baseUrl/admin-teacher/teacher-attendance/send-reminder');
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'teacher_uid': teacherUid,
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      print("Send Reminder Response: ${response.body}");
+      return jsonDecode(response.body);
+    } catch (e) {
+      print("Error sending attendance reminder: $e");
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }

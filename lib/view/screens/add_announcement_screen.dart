@@ -19,11 +19,11 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
 
   late TextEditingController _titleController;
   late TextEditingController _descController;
-  
+
   int? _selectedTypeId;
   late DateTime _fromDate;
   late DateTime _toDate;
-  late String _targetType; 
+  late String _targetType;
   File? _imageFile;
   String? _existingImageUrl;
 
@@ -40,7 +40,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     _descController = TextEditingController(text: a?.description ?? "");
     _selectedTypeId = a?.typeId;
     _fromDate = a != null ? DateTime.parse(a.fromDate) : DateTime.now();
-    _toDate = a != null ? DateTime.parse(a.toDate) : DateTime.now().add(const Duration(days: 7));
+    _toDate = a != null
+        ? DateTime.parse(a.toDate)
+        : DateTime.now().add(const Duration(days: 7));
     _targetType = a?.targetType ?? 'all';
     _existingImageUrl = a?.imageUrl;
 
@@ -80,7 +82,10 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Select Image Source", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              "Select Image Source",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             ListTile(
               leading: const Icon(Icons.camera_alt),
@@ -109,138 +114,185 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
-            widget.announcement == null ? "CREATE ANNOUNCEMENT" : "EDIT ANNOUNCEMENT",
+            widget.announcement == null
+                ? "CREATE ANNOUNCEMENT"
+                : "EDIT ANNOUNCEMENT",
             style: const TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
             ),
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionTitle("General Details"),
+                _buildTextField("Title", _titleController, "Enter title"),
+                const SizedBox(height: 12),
+                _buildTextField(
+                  "Description",
+                  _descController,
+                  "Enter description",
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+
+                _buildDropdownSection(
+                  "Announcement Type",
+                  Obx(
+                    () => DropdownButtonFormField<int>(
+                      value: _selectedTypeId,
+                      dropdownColor: Colors.white,
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Color(0xFF0038A8),
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      items: controller.announcementTypes.map((type) {
+                        return DropdownMenuItem(
+                          value: type.id,
+                          child: Text(type.name),
+                        );
+                      }).toList(),
+                      onChanged: (val) => setState(() => _selectedTypeId = val),
+                      decoration: _inputDecoration("Select Type"),
+                      validator: (val) => val == null ? "Required" : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _buildSectionTitle("Image (Optional)"),
+                _buildImagePicker(screenHeight),
+
+                const SizedBox(height: 16),
+                _buildSectionTitle("Schedule"),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDatePicker(
+                        "From Date",
+                        _fromDate,
+                        (date) => setState(() => _fromDate = date),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDatePicker(
+                        "To Date",
+                        _toDate,
+                        (date) => setState(() => _toDate = date),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                _buildSectionTitle("Target Audience"),
+                Row(
+                  children: [
+                    _buildRadioButton("All Students", 'all'),
+                    const SizedBox(width: 20),
+                    _buildRadioButton("Specific", 'specific'),
+                  ],
+                ),
+
+                if (_targetType == 'specific') ...[
+                  const SizedBox(height: 16),
+                  _buildSpecificTargetingFields(),
+                ],
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: Obx(
+                    () => ElevatedButton(
+                      onPressed: controller.isSubmitting.value ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0038A8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: controller.isSubmitting.value
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              widget.announcement == null
+                                  ? "CREATE ANNOUNCEMENT"
+                                  : "UPDATE ANNOUNCEMENT",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ),
-        body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionTitle("General Details"),
-              _buildTextField("Title", _titleController, "Enter title"),
-              const SizedBox(height: 12),
-              _buildTextField("Description", _descController, "Enter description", maxLines: 3),
-              const SizedBox(height: 12),
-              
-              _buildDropdownSection("Announcement Type", 
-                Obx(() => DropdownButtonFormField<int>(
-                  value: _selectedTypeId,
-                  dropdownColor: Colors.white,
-                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Color(0xFF0038A8)),
-                  borderRadius: BorderRadius.circular(12),
-                  items: controller.announcementTypes.map((type) {
-                    return DropdownMenuItem(value: type.id, child: Text(type.name));
-                  }).toList(),
-                  onChanged: (val) => setState(() => _selectedTypeId = val),
-                  decoration: _inputDecoration("Select Type"),
-                  validator: (val) => val == null ? "Required" : null,
-                ))
-              ),
-              const SizedBox(height: 12),
-              _buildSectionTitle("Image (Optional)"),
-              _buildImagePicker(screenHeight),
-
-              const SizedBox(height: 16),
-              _buildSectionTitle("Schedule"),
-              Row(
-                children: [
-                  Expanded(child: _buildDatePicker("From Date", _fromDate, (date) => setState(() => _fromDate = date))),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildDatePicker("To Date", _toDate, (date) => setState(() => _toDate = date))),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              _buildSectionTitle("Target Audience"),
-              Row(
-                children: [
-                  _buildRadioButton("All Students", 'all'),
-                  const SizedBox(width: 20),
-                  _buildRadioButton("Specific", 'specific'),
-                ],
-              ),
-
-              if (_targetType == 'specific') ...[
-                const SizedBox(height: 16),
-                _buildSpecificTargetingFields(),
-              ],
-
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: Obx(() => ElevatedButton(
-                  onPressed: controller.isSubmitting.value ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0038A8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 2,
-                  ),
-                  child: controller.isSubmitting.value
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          widget.announcement == null ? "CREATE ANNOUNCEMENT" : "UPDATE ANNOUNCEMENT",
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
-                )),
-              ),
-              const SizedBox(height: 40),
-            ],
-          ),
-        ),
       ),
-    ));
+    );
   }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4),
-      child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1)),
+      child: Text(
+        title.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Color(0xFF64748B),
+          letterSpacing: 1,
+        ),
+      ),
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, String hint, {int maxLines = 1}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 1,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B))),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1E293B),
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -256,18 +308,36 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B))),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1E293B),
+          ),
+        ),
         const SizedBox(height: 8),
         dropdown,
       ],
     );
   }
 
-  Widget _buildDatePicker(String label, DateTime selectedDate, Function(DateTime) onSelect) {
+  Widget _buildDatePicker(
+    String label,
+    DateTime selectedDate,
+    Function(DateTime) onSelect,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF1E293B))),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF1E293B),
+          ),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: () async {
@@ -289,7 +359,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}"),
+                Text(
+                  "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}",
+                ),
                 const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
               ],
             ),
@@ -335,19 +407,31 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
       ),
       child: Column(
         children: [
-          Obx(() => DropdownButtonFormField<int>(
-            value: _selectedClassId,
-            items: controller.classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-            onChanged: (val) => setState(() => _selectedClassId = val),
-            decoration: _inputDecoration("Select Class"),
-          )),
+          Obx(
+            () => DropdownButtonFormField<int>(
+              value: _selectedClassId,
+              items: controller.classes
+                  .map(
+                    (c) => DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  )
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedClassId = val),
+              decoration: _inputDecoration("Select Class"),
+            ),
+          ),
           const SizedBox(height: 12),
-          Obx(() => DropdownButtonFormField<int>(
-            value: _selectedStreamId,
-            items: controller.streams.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
-            onChanged: (val) => setState(() => _selectedStreamId = val),
-            decoration: _inputDecoration("Select Stream"),
-          )),
+          Obx(
+            () => DropdownButtonFormField<int>(
+              value: _selectedStreamId,
+              items: controller.streams
+                  .map(
+                    (s) => DropdownMenuItem(value: s.id, child: Text(s.name)),
+                  )
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedStreamId = val),
+              decoration: _inputDecoration("Select Stream"),
+            ),
+          ),
           const SizedBox(height: 12),
           _buildMultiSelectSections(),
         ],
@@ -359,29 +443,34 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Select Sections", style: TextStyle(fontSize: 12, color: Colors.grey)),
+        const Text(
+          "Select Sections",
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
         const SizedBox(height: 8),
-        Obx(() => Wrap(
-          spacing: 8,
-          children: controller.sections.map((section) {
-            final isSelected = _selectedSectionIds.contains(section.id);
-            return FilterChip(
-              label: Text(section.name),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() {
-                  if (selected) {
-                    _selectedSectionIds.add(section.id);
-                  } else {
-                    _selectedSectionIds.remove(section.id);
-                  }
-                });
-              },
-              selectedColor: Colors.blue.shade100,
-              checkmarkColor: Colors.blue,
-            );
-          }).toList(),
-        )),
+        Obx(
+          () => Wrap(
+            spacing: 8,
+            children: controller.sections.map((section) {
+              final isSelected = _selectedSectionIds.contains(section.id);
+              return FilterChip(
+                label: Text(section.name),
+                selected: isSelected,
+                onSelected: (selected) {
+                  setState(() {
+                    if (selected) {
+                      _selectedSectionIds.add(section.id);
+                    } else {
+                      _selectedSectionIds.remove(section.id);
+                    }
+                  });
+                },
+                selectedColor: Colors.blue.shade100,
+                checkmarkColor: Colors.blue,
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
@@ -430,8 +519,15 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                       }),
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 16, color: Colors.white),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 16,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -448,23 +544,44 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
       fillColor: Colors.white,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1)),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade300)),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1.5)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1.5),
+      ),
     );
   }
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
       if (_selectedTypeId == null) {
-        Get.snackbar("Error", "Please select an announcement type", backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          "Error",
+          "Please select an announcement type",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
         return;
       }
 
       List<Map<String, dynamic>>? targets;
       if (_targetType == 'specific') {
-        if (_selectedClassId == null || _selectedStreamId == null || _selectedSectionIds.isEmpty) {
-          Get.snackbar("Error", "Please complete targeting selection", backgroundColor: Colors.red, colorText: Colors.white);
+        if (_selectedClassId == null ||
+            _selectedStreamId == null ||
+            _selectedSectionIds.isEmpty) {
+          Get.snackbar(
+            "Error",
+            "Please complete targeting selection",
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
           return;
         }
         targets = [
@@ -472,7 +589,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
             "class_id": _selectedClassId,
             "stream_id": _selectedStreamId,
             "section_ids": _selectedSectionIds,
-          }
+          },
         ];
       }
 
@@ -482,8 +599,10 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
           description: _descController.text,
           typeId: _selectedTypeId!,
           image: _imageFile,
-          fromDate: "${_fromDate.year}-${_fromDate.month.toString().padLeft(2, '0')}-${_fromDate.day.toString().padLeft(2, '0')}",
-          toDate: "${_toDate.year}-${_toDate.month.toString().padLeft(2, '0')}-${_toDate.day.toString().padLeft(2, '0')}",
+          fromDate:
+              "${_fromDate.year}-${_fromDate.month.toString().padLeft(2, '0')}-${_fromDate.day.toString().padLeft(2, '0')}",
+          toDate:
+              "${_toDate.year}-${_toDate.month.toString().padLeft(2, '0')}-${_toDate.day.toString().padLeft(2, '0')}",
           targetType: _targetType,
           targets: targets,
         );
@@ -494,8 +613,10 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
           description: _descController.text,
           typeId: _selectedTypeId!,
           image: _imageFile,
-          fromDate: "${_fromDate.year}-${_fromDate.month.toString().padLeft(2, '0')}-${_fromDate.day.toString().padLeft(2, '0')}",
-          toDate: "${_toDate.year}-${_toDate.month.toString().padLeft(2, '0')}-${_toDate.day.toString().padLeft(2, '0')}",
+          fromDate:
+              "${_fromDate.year}-${_fromDate.month.toString().padLeft(2, '0')}-${_fromDate.day.toString().padLeft(2, '0')}",
+          toDate:
+              "${_toDate.year}-${_toDate.month.toString().padLeft(2, '0')}-${_toDate.day.toString().padLeft(2, '0')}",
           targetType: _targetType,
           targets: targets,
         );

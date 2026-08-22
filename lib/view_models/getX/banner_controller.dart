@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:smart_aig_admins_app/models/banner_model.dart';
 import 'package:smart_aig_admins_app/models/banner_classes_model.dart';
 import 'package:smart_aig_admins_app/services/banner_service.dart';
 
 class BannerController extends GetxController {
   final BannerService _service = BannerService();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   var isLoading = true.obs;
   var banners = <BannerModel>[].obs;
@@ -15,11 +17,29 @@ class BannerController extends GetxController {
   
   var isPublishing = false.obs;
 
+  // Banner counts for badges
+  int get totalBanners => banners.length;
+  int get activeBanners => banners.where((b) => b.status == 1).length;
+
   @override
   void onInit() {
     super.onInit();
     fetchBanners();
     fetchBannerClasses();
+  }
+
+  Future<void> _playNotificationSound() async {
+    try {
+      // Aapki original file ka naam yahan likh diya hai
+      await _audioPlayer.play(AssetSource('sounds/ce49b0f5_1785475380_caac956a_1 (3).mp3'));
+    } catch (e) {
+      debugPrint("Error playing sound: $e");
+    }
+  }
+
+  // Naya function banner click par sound bajane ke liye
+  void playClickSound() {
+    _playNotificationSound();
   }
 
   Future<void> fetchBannerClasses() async {
@@ -127,6 +147,9 @@ class BannerController extends GetxController {
       isLoading.value = true;
       final response = await _service.getBanners();
       if (response.success && response.publishedBanners != null) {
+        if (banners.isNotEmpty && response.publishedBanners!.length > banners.length) {
+          _playNotificationSound();
+        }
         banners.assignAll(response.publishedBanners!);
       } else {
         Get.snackbar(

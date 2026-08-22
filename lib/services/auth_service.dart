@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/extension_navigation.dart';
-import 'package:get/get_navigation/src/snackbar/snackbar.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,11 +42,31 @@ class AuthService {
 
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: jsonEncode(body),
       ).timeout(const Duration(seconds: 15));
 
-      return jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          "success": false,
+          "message": "Server error: ${response.statusCode}. Please try again later."
+        };
+      }
+    } on SocketException {
+      return {
+        "success": false,
+        "message": "Network error: Please check your internet connection."
+      };
+    } on FormatException {
+      return {
+        "success": false,
+        "message": "Invalid response from server. Please contact support."
+      };
     } catch (e) {
       return {
         "success": false,
@@ -81,7 +99,10 @@ class AuthService {
 
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: jsonEncode({
           "whatsapp_number": phoneNumber,
           "otp_code": otpCode,
@@ -89,10 +110,27 @@ class AuthService {
           "device_name": deviceName,
           "device_os": deviceOs,
         }),
-      );
+      ).timeout(const Duration(seconds: 15));
 
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      return AuthResponseModel.fromJson(responseData);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        return AuthResponseModel.fromJson(responseData);
+      } else {
+        return AuthResponseModel(
+          success: false,
+          message: "Server error: ${response.statusCode}. Please try again later.",
+        );
+      }
+    } on SocketException {
+      return AuthResponseModel(
+        success: false,
+        message: "Network error: Please check your internet connection.",
+      );
+    } on FormatException {
+      return AuthResponseModel(
+        success: false,
+        message: "Invalid response from server. Please contact support.",
+      );
     } catch (e) {
       return AuthResponseModel(
         success: false,
@@ -111,6 +149,7 @@ class AuthService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
       ).timeout(const Duration(seconds: 15));
@@ -118,7 +157,6 @@ class AuthService {
       if (response.statusCode == 200) {
         return DashboardModel.fromJson(jsonDecode(response.body));
       } else if (response.statusCode == 401) {
-        // Token expired or invalid - Force Logout
         _forceLogout();
         return DashboardModel(success: false);
       } else {
@@ -152,6 +190,7 @@ class AuthService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
       ).timeout(const Duration(seconds: 15));
@@ -177,6 +216,7 @@ class AuthService {
     return await http.get(
       url,
       headers: {
+        'Accept': 'application/json',
         'Authorization': 'Bearer $token',
       },
     ).timeout(const Duration(seconds: 15));
@@ -192,11 +232,16 @@ class AuthService {
         url,
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'Authorization': 'Bearer $token',
         },
       ).timeout(const Duration(seconds: 15));
 
-      return jsonDecode(response.body);
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return jsonDecode(response.body);
+      } else {
+        return {"success": false, "message": "Logout server error: ${response.statusCode}"};
+      }
     } catch (e) {
       return {"success": false, "message": "Error occurred: $e"};
     }

@@ -11,65 +11,55 @@ class DeadlinesScreen extends StatelessWidget {
     final DeadlinesController controller = Get.put(DeadlinesController());
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "DEADLINES",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
             ),
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
-          ),
         ),
         body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (controller.deadlinesList.isEmpty) {
-          return const Center(child: Text("No deadlines available"));
-        }
+          if (controller.deadlinesList.isEmpty) {
+            return const Center(child: Text("No deadlines available"));
+          }
 
-        return RefreshIndicator(
-          onRefresh: () => controller.fetchDeadlines(),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: controller.deadlinesList.length,
-            itemBuilder: (context, index) {
-              final deadline = controller.deadlinesList[index];
-              return _buildDeadlineCard(deadline);
-            },
-          ),
-        );
-      }),
-    ));
+          return RefreshIndicator(
+            onRefresh: () => controller.fetchDeadlines(),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: controller.deadlinesList.length,
+              itemBuilder: (context, index) {
+                final deadline = controller.deadlinesList[index];
+                return _buildDeadlineCard(deadline);
+              },
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   Widget _buildDeadlineCard(deadline) {
@@ -121,10 +111,20 @@ class DeadlinesScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.calendar_today, "Closing Date", deadline.formattedDateOfSubmission ?? "N/A"),
+          _buildInfoRow(
+            Icons.calendar_today,
+            "Closing Date",
+            deadline.formattedDateOfSubmission ?? "N/A",
+          ),
           const SizedBox(height: 8),
-          _buildInfoRow(Icons.timer_outlined, "Days Remaining", "${deadline.daysRemaining ?? 0} Days", 
-            valueColor: (deadline.daysRemaining ?? 0) <= 5 ? Colors.red : Colors.green),
+          _buildInfoRow(
+            Icons.timer_outlined,
+            "Days Remaining",
+            "${deadline.daysRemaining ?? 0} Days",
+            valueColor: (deadline.daysRemaining ?? 0) <= 5
+                ? Colors.red
+                : Colors.green,
+          ),
           const SizedBox(height: 12),
           if (deadline.remarks != null && deadline.remarks!.isNotEmpty)
             Container(
@@ -136,7 +136,11 @@ class DeadlinesScreen extends StatelessWidget {
               ),
               child: Text(
                 deadline.remarks!,
-                style: TextStyle(fontSize: 12, color: Colors.orange[900], height: 1.4),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange[900],
+                  height: 1.4,
+                ),
               ),
             ),
           const SizedBox(height: 16),
@@ -152,11 +156,14 @@ class DeadlinesScreen extends StatelessWidget {
                       backgroundColor: const Color(0xFF0038A8),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
-              if (deadline.link != null && deadline.docLink != null) const SizedBox(width: 12),
+              if (deadline.link != null && deadline.docLink != null)
+                const SizedBox(width: 12),
               if (deadline.docLink != null)
                 Expanded(
                   child: OutlinedButton.icon(
@@ -173,7 +180,9 @@ class DeadlinesScreen extends StatelessWidget {
                       foregroundColor: const Color(0xFF0038A8),
                       side: const BorderSide(color: Color(0xFF0038A8)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -184,7 +193,12 @@ class DeadlinesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {Color? valueColor}) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? valueColor,
+  }) {
     return Row(
       children: [
         Icon(icon, size: 16, color: Colors.grey[600]),

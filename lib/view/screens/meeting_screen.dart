@@ -13,79 +13,73 @@ class MeetingScreen extends StatelessWidget {
     final bool isPushed = ModalRoute.of(context)?.canPop ?? false;
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: isPushed 
-          ? AppBar(
-              toolbarHeight: 80,
-              backgroundColor: const Color(0xFF0038A8),
-              elevation: 0,
-              centerTitle: true,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: const Text(
-                "MEETINGS",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  letterSpacing: 1.1,
+        appBar: isPushed
+            ? AppBar(
+                toolbarHeight: 80,
+                backgroundColor: const Color(0xFFF8F9FE),
+                elevation: 0,
+                centerTitle: true,
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: const Color(0xFF1E293B),
+                    size: 20,
+                  ),
+                  onPressed: () => Navigator.pop(context),
                 ),
-              ),
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
+                title: const Text(
+                  "MEETINGS",
+                  style: TextStyle(
+                    color: const Color(0xFF1E293B),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    letterSpacing: 1.1,
+                  ),
                 ),
-              ),
-            )
-          : null,
+              )
+            : null,
         body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (controller.meetings.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.meeting_room_outlined, size: 64, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  "No meetings scheduled",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                ),
-              ],
+          if (controller.meetings.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.meeting_room_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No meetings scheduled",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => controller.fetchMeetings(),
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              itemCount: controller.meetings.length,
+              itemBuilder: (context, index) {
+                final meeting = controller.meetings[index];
+                return _buildMeetingCard(meeting);
+              },
             ),
           );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () => controller.fetchMeetings(),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: controller.meetings.length,
-            itemBuilder: (context, index) {
-              final meeting = controller.meetings[index];
-              return _buildMeetingCard(meeting);
-            },
-          ),
-        );
-      }),
-    ));
+        }),
+      ),
+    );
   }
 
   Widget _buildMeetingCard(Meeting meeting) {
@@ -189,14 +183,21 @@ class MeetingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildInfoTile(Icons.access_time_rounded, "${meeting.fromTime} - ${meeting.toTime}"),
-                if (meeting.remarks != null && 
-                    meeting.remarks!.isNotEmpty && 
+                _buildInfoTile(
+                  Icons.access_time_rounded,
+                  "${meeting.fromTime} - ${meeting.toTime}",
+                ),
+                if (meeting.remarks != null &&
+                    meeting.remarks!.isNotEmpty &&
                     meeting.remarks!.trim() != meeting.subject.trim()) ...[
                   const SizedBox(height: 10),
                   Text(
                     meeting.remarks!,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600], fontStyle: FontStyle.italic),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 16),
@@ -213,7 +214,9 @@ class MeetingScreen extends StatelessWidget {
                             foregroundColor: Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ),
@@ -247,7 +250,9 @@ class MeetingScreen extends StatelessWidget {
                             foregroundColor: const Color(0xFF0038A8),
                             side: const BorderSide(color: Color(0xFF0038A8)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ),

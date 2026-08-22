@@ -13,47 +13,36 @@ class AnnouncementScreen extends StatelessWidget {
     final AnnouncementController controller = Get.put(AnnouncementController());
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "ANNOUNCEMENTS",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
             ),
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
-          ),
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () => Get.to(() =>  AddAnnouncementScreen()),
-          backgroundColor: const Color(0xFF0038A8),
-          child: const Icon(Icons.add, color: Colors.white),
+          onPressed: () => Get.to(() => AddAnnouncementScreen()),
+          backgroundColor: const Color(0xFFF8F9FE),
+          child: const Icon(Icons.add, color: const Color(0xFF1E293B)),
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
@@ -84,21 +73,28 @@ class AnnouncementScreen extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: Color(0xFF0038A8), width: 1.2),
+                      side: const BorderSide(
+                        color: Color(0xFF0038A8),
+                        width: 1.2,
+                      ),
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty)
+                        if (announcement.imageUrl != null &&
+                            announcement.imageUrl!.isNotEmpty)
                           ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12),
+                            ),
                             child: Image.network(
                               announcement.imageUrl!,
                               width: double.infinity,
                               height: 160,
                               fit: BoxFit.fill,
-                              errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const SizedBox.shrink(),
                             ),
                           ),
                         Padding(
@@ -107,12 +103,18 @@ class AnnouncementScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: _getTypeColor(announcement.type).withAlpha(30),
+                                      color: _getTypeColor(
+                                        announcement.type,
+                                      ).withAlpha(30),
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Text(
@@ -126,7 +128,10 @@ class AnnouncementScreen extends StatelessWidget {
                                   ),
                                   Text(
                                     announcement.fromDate,
-                                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
                                 ],
                               ),
@@ -152,14 +157,21 @@ class AnnouncementScreen extends StatelessWidget {
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  const Icon(Icons.person_outline, size: 14, color: Colors.grey),
+                                  const Icon(
+                                    Icons.person_outline,
+                                    size: 14,
+                                    color: Colors.grey,
+                                  ),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
                                       announcement.createdBy,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   ),
                                   Transform.scale(
@@ -169,48 +181,100 @@ class AnnouncementScreen extends StatelessWidget {
                                       activeColor: Colors.green,
                                       onChanged: announcement.isEditable
                                           ? (val) {
-                                              controller.toggleStatus(announcement.id);
+                                              controller.toggleStatus(
+                                                announcement.id,
+                                              );
                                             }
                                           : null, // Disable if not editable
                                     ),
                                   ),
-                                  if (announcement.isEditable && 
-                                      announcement.submitStatus.toLowerCase() != 'locked' && 
-                                      announcement.submitStatus.toLowerCase() != 'submitted')
+                                  if (announcement.isEditable &&
+                                      announcement.submitStatus.toLowerCase() !=
+                                          'locked' &&
+                                      announcement.submitStatus.toLowerCase() !=
+                                          'submitted')
                                     IconButton(
                                       constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                                      icon: const Icon(Icons.edit_note, size: 24, color: Colors.blue),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.edit_note,
+                                        size: 24,
+                                        color: Colors.blue,
+                                      ),
                                       onPressed: () async {
-                                        Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-                                        await controller.fetchAnnouncementDetails(announcement.id);
+                                        Get.dialog(
+                                          const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                          barrierDismissible: false,
+                                        );
+                                        await controller
+                                            .fetchAnnouncementDetails(
+                                              announcement.id,
+                                            );
                                         Get.back(); // close loading dialog
-                                        if (controller.announcementDetail.value != null) {
-                                          Get.to(() => AddAnnouncementScreen(announcement: controller.announcementDetail.value));
+                                        if (controller
+                                                .announcementDetail
+                                                .value !=
+                                            null) {
+                                          Get.to(
+                                            () => AddAnnouncementScreen(
+                                              announcement: controller
+                                                  .announcementDetail
+                                                  .value,
+                                            ),
+                                          );
                                         }
                                       },
                                     ),
                                   if (announcement.isEditable) ...[
                                     // Check if it's currently locked
-                                    if (announcement.submitStatus.toLowerCase() == 'locked' || 
-                                        announcement.submitStatus.toLowerCase() == 'submitted')
+                                    if (announcement.submitStatus
+                                                .toLowerCase() ==
+                                            'locked' ||
+                                        announcement.submitStatus
+                                                .toLowerCase() ==
+                                            'submitted')
                                       IconButton(
                                         constraints: const BoxConstraints(),
-                                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                                        icon: const Icon(Icons.lock, size: 20, color: Colors.orange),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        icon: const Icon(
+                                          Icons.lock,
+                                          size: 20,
+                                          color: Colors.orange,
+                                        ),
                                         onPressed: () {
                                           Get.dialog(
                                             AlertDialog(
-                                              title: const Text("Unlock Announcement"),
-                                              content: const Text("Are you sure you want to unlock this announcement?"),
+                                              title: const Text(
+                                                "Unlock Announcement",
+                                              ),
+                                              content: const Text(
+                                                "Are you sure you want to unlock this announcement?",
+                                              ),
                                               actions: [
-                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () => Get.back(),
+                                                  child: const Text("Cancel"),
+                                                ),
                                                 TextButton(
                                                   onPressed: () {
                                                     Get.back();
-                                                    controller.unlockAnnouncement(announcement.id);
+                                                    controller
+                                                        .unlockAnnouncement(
+                                                          announcement.id,
+                                                        );
                                                   },
-                                                  child: const Text("Unlock", style: TextStyle(color: Colors.green)),
+                                                  child: const Text(
+                                                    "Unlock",
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -220,21 +284,41 @@ class AnnouncementScreen extends StatelessWidget {
                                     else
                                       IconButton(
                                         constraints: const BoxConstraints(),
-                                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                                        icon: const Icon(Icons.lock_open, size: 20, color: Colors.green),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        icon: const Icon(
+                                          Icons.lock_open,
+                                          size: 20,
+                                          color: Colors.green,
+                                        ),
                                         onPressed: () {
                                           Get.dialog(
                                             AlertDialog(
-                                              title: const Text("Lock Announcement"),
-                                              content: const Text("Are you sure you want to lock this announcement?"),
+                                              title: const Text(
+                                                "Lock Announcement",
+                                              ),
+                                              content: const Text(
+                                                "Are you sure you want to lock this announcement?",
+                                              ),
                                               actions: [
-                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () => Get.back(),
+                                                  child: const Text("Cancel"),
+                                                ),
                                                 TextButton(
                                                   onPressed: () {
                                                     Get.back();
-                                                    controller.lockAnnouncement(announcement.id);
+                                                    controller.lockAnnouncement(
+                                                      announcement.id,
+                                                    );
                                                   },
-                                                  child: const Text("Lock", style: TextStyle(color: Colors.orange)),
+                                                  child: const Text(
+                                                    "Lock",
+                                                    style: TextStyle(
+                                                      color: Colors.orange,
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -242,43 +326,76 @@ class AnnouncementScreen extends StatelessWidget {
                                         },
                                       ),
                                   ],
-                                  if (announcement.imageUrl != null && announcement.imageUrl!.isNotEmpty)
+                                  if (announcement.imageUrl != null &&
+                                      announcement.imageUrl!.isNotEmpty)
                                     IconButton(
                                       constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                                      icon: const Icon(Icons.download, size: 20, color:Colors.red),
-                                      onPressed: () => Get.to(() => BannerDetailsScreen(
-                                        imageUrl: announcement.imageUrl!,
-                                        title: announcement.title,
-                                      )),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      icon: const Icon(
+                                        Icons.download,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () => Get.to(
+                                        () => BannerDetailsScreen(
+                                          imageUrl: announcement.imageUrl!,
+                                          title: announcement.title,
+                                        ),
+                                      ),
                                     ),
                                   if (announcement.isEditable)
                                     IconButton(
                                       constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
                                       icon: Icon(
-                                        announcement.publishStatus.toLowerCase().contains('publish')
+                                        announcement.publishStatus
+                                                .toLowerCase()
+                                                .contains('publish')
                                             ? Icons.unpublished
                                             : Icons.publish,
                                         size: 20,
-                                        color: announcement.publishStatus.toLowerCase().contains('publish')
+                                        color:
+                                            announcement.publishStatus
+                                                .toLowerCase()
+                                                .contains('publish')
                                             ? Colors.redAccent
                                             : Colors.indigo,
                                       ),
                                       onPressed: () {
-                                        if (announcement.publishStatus.toLowerCase().contains('publish')) {
+                                        if (announcement.publishStatus
+                                            .toLowerCase()
+                                            .contains('publish')) {
                                           Get.dialog(
                                             AlertDialog(
-                                              title: const Text("Unpublish Announcement"),
-                                              content: const Text("Are you sure you want to unpublish this announcement?"),
+                                              title: const Text(
+                                                "Unpublish Announcement",
+                                              ),
+                                              content: const Text(
+                                                "Are you sure you want to unpublish this announcement?",
+                                              ),
                                               actions: [
-                                                TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+                                                TextButton(
+                                                  onPressed: () => Get.back(),
+                                                  child: const Text("Cancel"),
+                                                ),
                                                 TextButton(
                                                   onPressed: () {
                                                     Get.back();
-                                                    controller.unpublishAnnouncement(announcement.id);
+                                                    controller
+                                                        .unpublishAnnouncement(
+                                                          announcement.id,
+                                                        );
                                                   },
-                                                  child: const Text("Unpublish", style: TextStyle(color: Colors.redAccent)),
+                                                  child: const Text(
+                                                    "Unpublish",
+                                                    style: TextStyle(
+                                                      color: Colors.redAccent,
+                                                    ),
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -289,14 +406,22 @@ class AnnouncementScreen extends StatelessWidget {
                                               padding: const EdgeInsets.all(20),
                                               decoration: const BoxDecoration(
                                                 color: Colors.white,
-                                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                      top: Radius.circular(20),
+                                                    ),
                                               ),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   const Text(
                                                     "PUBLISH TO",
-                                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                                    style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Color(0xFF1E293B),
+                                                    ),
                                                   ),
                                                   const SizedBox(height: 20),
                                                   _buildPublishOption(
@@ -305,7 +430,12 @@ class AnnouncementScreen extends StatelessWidget {
                                                     color: Colors.blue,
                                                     onTap: () {
                                                       Get.back();
-                                                      controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 0);
+                                                      controller
+                                                          .publishAnnouncement(
+                                                            announcement.id,
+                                                            sendToParents: 1,
+                                                            sendToTeachers: 0,
+                                                          );
                                                     },
                                                   ),
                                                   _buildPublishOption(
@@ -314,16 +444,27 @@ class AnnouncementScreen extends StatelessWidget {
                                                     color: Colors.orange,
                                                     onTap: () {
                                                       Get.back();
-                                                      controller.publishAnnouncement(announcement.id, sendToParents: 0, sendToTeachers: 1);
+                                                      controller
+                                                          .publishAnnouncement(
+                                                            announcement.id,
+                                                            sendToParents: 0,
+                                                            sendToTeachers: 1,
+                                                          );
                                                     },
                                                   ),
                                                   _buildPublishOption(
                                                     icon: Icons.group_outlined,
-                                                    title: "Both Parents & Teachers",
+                                                    title:
+                                                        "Both Parents & Teachers",
                                                     color: Colors.indigo,
                                                     onTap: () {
                                                       Get.back();
-                                                      controller.publishAnnouncement(announcement.id, sendToParents: 1, sendToTeachers: 1);
+                                                      controller
+                                                          .publishAnnouncement(
+                                                            announcement.id,
+                                                            sendToParents: 1,
+                                                            sendToTeachers: 1,
+                                                          );
                                                     },
                                                   ),
                                                   const SizedBox(height: 10),
@@ -362,7 +503,12 @@ class AnnouncementScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildPublishOption({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+  Widget _buildPublishOption({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -374,9 +520,16 @@ class AnnouncementScreen extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF1E293B)),
+        style: const TextStyle(
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF1E293B),
+        ),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+      trailing: const Icon(
+        Icons.arrow_forward_ios,
+        size: 14,
+        color: Colors.grey,
+      ),
       onTap: onTap,
     );
   }

@@ -17,74 +17,92 @@ class TeacherAttendanceReportModel {
 
 class TeacherAttendanceData {
   final TeacherAttendanceStats stats;
-  final List<DepartmentWiseAttendance> departmentWiseData;
+  final List<StaffAttendanceData> staffAttendanceData;
 
   TeacherAttendanceData({
     required this.stats,
-    required this.departmentWiseData,
+    required this.staffAttendanceData,
   });
 
   factory TeacherAttendanceData.fromJson(Map<String, dynamic> json) {
     return TeacherAttendanceData(
       stats: TeacherAttendanceStats.fromJson(json['stats'] ?? {}),
-      departmentWiseData: (json['department_wise_data'] as List? ?? [])
-          .map((i) => DepartmentWiseAttendance.fromJson(i))
+      staffAttendanceData: (json['staff_attendance_data'] as List? ?? [])
+          .map((i) => StaffAttendanceData.fromJson(i))
           .toList(),
     );
   }
 }
 
 class TeacherAttendanceStats {
-  final int totalTeachers;
-  final int activeTeachers;
-  final int presentToday;
-  final int absentToday;
-  final int leaveToday;
+  final int totalStaff;
+  final int present;
+  final int late;
+  final int halfDay;
+  final int leave;
+  final int holidayOff;
+  final int absent;
+  final int combinedPresent;
 
   TeacherAttendanceStats({
-    required this.totalTeachers,
-    required this.activeTeachers,
-    required this.presentToday,
-    required this.absentToday,
-    required this.leaveToday,
+    required this.totalStaff,
+    required this.present,
+    required this.late,
+    required this.halfDay,
+    required this.leave,
+    required this.holidayOff,
+    required this.absent,
+    required this.combinedPresent,
   });
 
   factory TeacherAttendanceStats.fromJson(Map<String, dynamic> json) {
     return TeacherAttendanceStats(
-      totalTeachers: json['total_teachers'] ?? 0,
-      activeTeachers: json['active_teachers'] ?? 0,
-      presentToday: json['present_today'] ?? 0,
-      absentToday: json['absent_today'] ?? 0,
-      leaveToday: json['leave_today'] ?? 0,
+      totalStaff: json['total_staff'] ?? 0,
+      present: json['present'] ?? 0,
+      late: json['late'] ?? 0,
+      halfDay: json['half_day'] ?? 0,
+      leave: json['leave'] ?? 0,
+      holidayOff: json['holiday_off'] ?? 0,
+      absent: json['absent'] ?? 0,
+      combinedPresent: json['combined_present'] ?? 0,
     );
   }
 }
 
-class DepartmentWiseAttendance {
-  final int? departmentId;
-  final String departmentName;
-  final int totalTeachers;
-  final int present;
-  final int absent;
-  final int leave;
+class StaffAttendanceData {
+  final String teacherName;
+  final String teacherUid;
+  final String wingName;
+  final String attendanceStatus;
+  final String checkIn;
+  final String checkOut;
+  final String deductionPolicy;
+  final String dayStatus;
+  final String remarks;
 
-  DepartmentWiseAttendance({
-    this.departmentId,
-    required this.departmentName,
-    required this.totalTeachers,
-    required this.present,
-    required this.absent,
-    required this.leave,
+  StaffAttendanceData({
+    required this.teacherName,
+    required this.teacherUid,
+    required this.wingName,
+    required this.attendanceStatus,
+    required this.checkIn,
+    required this.checkOut,
+    required this.deductionPolicy,
+    required this.dayStatus,
+    required this.remarks,
   });
 
-  factory DepartmentWiseAttendance.fromJson(Map<String, dynamic> json) {
-    return DepartmentWiseAttendance(
-      departmentId: json['department_id'],
-      departmentName: json['department_name'] ?? '',
-      totalTeachers: json['total_teachers'] ?? 0,
-      present: json['present'] ?? 0,
-      absent: json['absent'] ?? 0,
-      leave: json['leave'] ?? 0,
+  factory StaffAttendanceData.fromJson(Map<String, dynamic> json) {
+    return StaffAttendanceData(
+      teacherName: json['teacher_name'] ?? '',
+      teacherUid: json['teacher_uid'] ?? '',
+      wingName: json['wing_name'] ?? '',
+      attendanceStatus: json['attendance_status'] ?? '',
+      checkIn: json['check_in'] ?? '',
+      checkOut: json['check_out'] ?? '',
+      deductionPolicy: json['deduction_policy'] ?? '',
+      dayStatus: json['day_status'] ?? '',
+      remarks: json['remarks'] ?? '',
     );
   }
 }

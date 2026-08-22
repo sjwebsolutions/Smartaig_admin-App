@@ -12,9 +12,12 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (index) => TextEditingController(),
+  );
   final AuthController _authController = Get.find<AuthController>();
-  
+
   Timer? _timer;
   int _secondsRemaining = 120; // 2 minutes
 
@@ -68,7 +71,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 30.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 30.0,
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -86,13 +92,16 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1E293B)),
+                      icon: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Color(0xFF1E293B),
+                      ),
                       onPressed: () => Get.back(),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // App Icon
 
+                  // App Icon
                   const Text(
                     "Verify OTP",
                     style: TextStyle(
@@ -125,16 +134,27 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.timer_outlined, size: 20, color: Color(0xFF1E293B)),
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 20,
+                        color: Color(0xFF1E293B),
+                      ),
                       const SizedBox(width: 8),
                       RichText(
                         text: TextSpan(
-                          style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B), fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF1E293B),
+                            fontWeight: FontWeight.w500,
+                          ),
                           children: [
                             const TextSpan(text: "OTP expires in "),
                             TextSpan(
                               text: _formatTime(_secondsRemaining),
-                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -148,7 +168,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                     child: Text(
                       "Resend OTP via WhatsApp",
                       style: TextStyle(
-                        color: _secondsRemaining == 0 ? const Color(0xFF1E293B) : Colors.grey,
+                        color: _secondsRemaining == 0
+                            ? const Color(0xFF1E293B)
+                            : Colors.grey,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -159,34 +181,38 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   // Verify Button
                   SizedBox(
                     width: double.infinity,
-                    child: Obx(() => ElevatedButton(
-                      onPressed: _authController.isLoading.value ? null : _handleVerifyOtp,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E2E5D), // Dark Navy
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+                    child: Obx(
+                      () => ElevatedButton(
+                        onPressed: _authController.isLoading.value
+                            ? null
+                            : _handleVerifyOtp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E2E5D), // Dark Navy
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 4,
                         ),
-                        elevation: 4,
+                        child: _authController.isLoading.value
+                            ? const SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Verify & Login",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
-                      child: _authController.isLoading.value
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Text(
-                              "Verify & Login",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    )),
+                    ),
                   ),
                   const SizedBox(height: 25),
 

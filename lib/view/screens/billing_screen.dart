@@ -11,40 +11,29 @@ class BillingScreen extends StatelessWidget {
     final BillingController controller = Get.put(BillingController());
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "BILLING",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
-            ),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
             ),
           ),
         ),
@@ -58,7 +47,11 @@ class BillingScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
+                  Icon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     "No billing records found",
@@ -124,10 +117,7 @@ class BillingScreen extends StatelessWidget {
                 ),
                 Text(
                   billing.formattedPaymentDate,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -150,10 +140,7 @@ class BillingScreen extends StatelessWidget {
                       children: [
                         const Text(
                           "Amount Paid",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                         Text(
                           "₹${billing.amount}",
@@ -166,15 +153,23 @@ class BillingScreen extends StatelessWidget {
                       ],
                     ),
                     ElevatedButton.icon(
-                      onPressed: () => controller.viewInvoice(billing.id, billing.orderIdFormatted),
+                      onPressed: () => controller.viewInvoice(
+                        billing.id,
+                        billing.orderIdFormatted,
+                      ),
                       icon: const Icon(Icons.description_outlined, size: 16),
                       label: const Text("Invoice"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0038A8),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ],
@@ -191,13 +186,7 @@ class BillingScreen extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
         Text(
           value,
           style: const TextStyle(

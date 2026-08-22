@@ -6,6 +6,7 @@ import 'package:smart_aig_admins_app/models/announcement_type_model.dart';
 import 'package:smart_aig_admins_app/models/targeting_data_model.dart';
 import 'package:smart_aig_admins_app/models/create_announcement_response.dart';
 import 'package:smart_aig_admins_app/services/announcement_service.dart';
+import 'package:smart_aig_admins_app/services/notification_service.dart';
 import 'dart:io';
 
 class AnnouncementController extends GetxController {
@@ -14,7 +15,11 @@ class AnnouncementController extends GetxController {
   var isLoading = true.obs;
   var announcements = <Announcement>[].obs;
 
+  // Counter getter
+  int get totalAnnouncements => announcements.length;
+
   var isLoadingDetails = false.obs;
+// ... (rest of imports and class starts)
   var announcementDetail = Rxn<AnnouncementDetail>();
 
   var isLoadingTypes = false.obs;
@@ -193,6 +198,13 @@ class AnnouncementController extends GetxController {
       isLoading.value = true;
       final response = await _service.getAnnouncements();
       if (response.success && response.data != null) {
+        // Notification logic for new announcements
+        if (announcements.isNotEmpty && response.data!.length > announcements.length) {
+          NotificationService.to.showLocalNotification(
+            "New Announcement",
+            "A new announcement has been posted.",
+          );
+        }
         announcements.value = response.data!;
       } else {
         Get.snackbar(

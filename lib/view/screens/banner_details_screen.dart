@@ -9,7 +9,11 @@ class BannerDetailsScreen extends StatefulWidget {
   final String imageUrl;
   final String title;
 
-  const BannerDetailsScreen({super.key, required this.imageUrl, required this.title});
+  const BannerDetailsScreen({
+    super.key,
+    required this.imageUrl,
+    required this.title,
+  });
 
   @override
   State<BannerDetailsScreen> createState() => _BannerDetailsScreenState();
@@ -21,7 +25,7 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
   Future<void> _shareImage() async {
     print("🚩 [Share Process Started]");
     print("🔗 Image URL: ${widget.imageUrl}");
-    
+
     setState(() {
       _isSharing = true;
     });
@@ -30,20 +34,18 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
       print("📥 Downloading image...");
       final response = await http.get(Uri.parse(widget.imageUrl));
       print("📡 Response Status Code: ${response.statusCode}");
-      
+
       if (response.statusCode == 200) {
         final bytes = response.bodyBytes;
         final temp = await getTemporaryDirectory();
-        final path = '${temp.path}/banner_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final path =
+            '${temp.path}/banner_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final file = File(path);
         await file.writeAsBytes(bytes);
         print("💾 Image saved locally at: $path");
 
         print("📤 Opening Share Sheet...");
-        await Share.shareXFiles(
-          [XFile(path)],
-          text: widget.title,
-        );
+        await Share.shareXFiles([XFile(path)], text: widget.title);
         print("✅ Share Sheet Opened");
       } else {
         print("❌ Failed to download image. Status: ${response.statusCode}");
@@ -63,42 +65,31 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
             widget.title.toUpperCase(),
             style: const TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 16,
               letterSpacing: 1.1,
             ),
             overflow: TextOverflow.ellipsis,
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
           ),
         ),
         body: Stack(
@@ -114,14 +105,21 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
                     fit: BoxFit.contain,
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
-                      return const Center(child: CircularProgressIndicator(color: Color(0xFF0038A8)));
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF0038A8),
+                        ),
+                      );
                     },
                     errorBuilder: (context, error, stackTrace) => const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.broken_image, color: Colors.grey, size: 64),
                         SizedBox(height: 16),
-                        Text("Failed to load image", style: TextStyle(color: Colors.grey)),
+                        Text(
+                          "Failed to load image",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ],
                     ),
                   ),
@@ -137,7 +135,13 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
                     children: [
                       CircularProgressIndicator(color: Colors.white),
                       SizedBox(height: 16),
-                      Text("Preparing image...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      Text(
+                        "Preparing image...",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -149,15 +153,24 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: ElevatedButton.icon(
               onPressed: _isSharing ? null : _shareImage,
-              icon: _isSharing 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              icon: _isSharing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                   : const Icon(Icons.share_rounded),
               label: Text(_isSharing ? "Sharing..." : "SHARE PHOTO"),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF0038A8),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 elevation: 5,
                 shadowColor: const Color(0xFF0038A8).withOpacity(0.4),
               ),

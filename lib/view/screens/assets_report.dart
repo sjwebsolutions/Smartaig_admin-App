@@ -11,40 +11,29 @@ class AssetsReport extends StatelessWidget {
     final FinanceController controller = Get.put(FinanceController());
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "FINANCE REPORT",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
-            ),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
             ),
           ),
         ),
@@ -97,22 +86,29 @@ class AssetsReport extends StatelessWidget {
                   //   ],
                   // ),
                   // const SizedBox(height: 20),
-
                   _buildFinanceCard(
                     title: "Fees Statistics",
                     icon: Icons.account_balance_wallet_rounded,
                     color: const Color(0xFF3B82F6), // Blue
                     item: data.fees,
-                    labels: ["Total Fee Received", "Today’s Collection", "Balance till today"],
+                    labels: [
+                      "Total Fee Received",
+                      "Today’s Collection",
+                      "Balance till today",
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   _buildFinanceCard(
                     title: "Books Statistics",
                     icon: Icons.auto_stories_rounded,
                     color: const Color(0xFF10B981), // Emerald
                     item: data.books,
-                    labels: ["Total Books Collection", "Today’s Collection", "Balance till today"],
+                    labels: [
+                      "Total Books Collection",
+                      "Today’s Collection",
+                      "Balance till today",
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -121,7 +117,11 @@ class AssetsReport extends StatelessWidget {
                     icon: Icons.checkroom_rounded,
                     color: const Color(0xFFF59E0B), // Amber
                     item: data.uniforms,
-                    labels: ["Total Uniform Collection", "Today’s Collection", "Balance Till Today"],
+                    labels: [
+                      "Total Uniform Collection",
+                      "Today’s Collection",
+                      "Balance Till Today",
+                    ],
                   ),
                   const SizedBox(height: 16),
 
@@ -130,7 +130,11 @@ class AssetsReport extends StatelessWidget {
                     icon: Icons.edit_note_rounded,
                     color: const Color(0xFFEC4899), // Pink
                     item: data.stationary,
-                    labels: ["Total Stationary Collection", "Today’s Collection", "Balance Till Today"],
+                    labels: [
+                      "Total Stationary Collection",
+                      "Today’s Collection",
+                      "Balance Till Today",
+                    ],
                   ),
                   const SizedBox(height: 30),
                 ],
@@ -188,18 +192,30 @@ class AssetsReport extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Content
           Padding(
             padding: const EdgeInsets.all(15),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(labels[0], item.totalReceived.toString(), Colors.green),
+                _buildStatItem(
+                  labels[0],
+                  item.totalReceived.toString(),
+                  Colors.green,
+                ),
                 _buildDivider(),
-                _buildStatItem(labels[1], item.todayCollection.toString(), const Color(0xFF0038A8)),
+                _buildStatItem(
+                  labels[1],
+                  item.todayCollection.toString(),
+                  const Color(0xFF0038A8),
+                ),
                 _buildDivider(),
-                _buildStatItem(labels[2], item.balanceTillToday.toString(), Colors.red),
+                _buildStatItem(
+                  labels[2],
+                  item.balanceTillToday.toString(),
+                  Colors.red,
+                ),
               ],
             ),
           ),
@@ -236,10 +252,6 @@ class AssetsReport extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey.withOpacity(0.2),
-    );
+    return Container(height: 30, width: 1, color: Colors.grey.withOpacity(0.2));
   }
 }

@@ -1,49 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/teacher_attendance_controller.dart';
+import 'package:smart_aig_admins_app/models/teacher_attendance_report_model.dart';
 
 class TeacherAttendanceReportScreen extends StatelessWidget {
   const TeacherAttendanceReportScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final TeacherAttendanceController controller = Get.put(TeacherAttendanceController());
+    final TeacherAttendanceController controller = Get.put(
+      TeacherAttendanceController(),
+    );
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "TEACHER ATTENDANCE REPORT",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
-            ),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
             ),
           ),
         ),
@@ -53,11 +45,14 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
           }
 
           if (controller.attendanceData.value == null) {
-            return const Center(child: Text("No teacher attendance data available"));
+            return const Center(
+              child: Text("No teacher attendance data available"),
+            );
           }
 
           final stats = controller.attendanceData.value!.stats;
-          final deptWiseData = controller.attendanceData.value!.departmentWiseData;
+          final staffList =
+              controller.attendanceData.value!.staffAttendanceData;
 
           return RefreshIndicator(
             onRefresh: () => controller.fetchAttendanceSummary(),
@@ -78,9 +73,9 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
                   const SizedBox(height: 15),
                   _buildSummaryGrid(stats),
                   const SizedBox(height: 25),
-                  if (deptWiseData.isNotEmpty) ...[
+                  if (staffList.isNotEmpty) ...[
                     const Text(
-                      "Department-wise Attendance",
+                      "Staff Attendance List",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -91,11 +86,12 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      itemCount: deptWiseData.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
+                      itemCount: staffList.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10),
                       itemBuilder: (context, index) {
-                        final item = deptWiseData[index];
-                        return _buildDeptCard(item);
+                        final item = staffList[index];
+                        return _buildStaffCard(item);
                       },
                     ),
                   ],
@@ -109,7 +105,7 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryGrid(stats) {
+  Widget _buildSummaryGrid(TeacherAttendanceStats stats) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -118,10 +114,10 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
       mainAxisSpacing: 10,
       childAspectRatio: 1.5,
       children: [
-        _buildStatCard("Total Teachers", stats.totalTeachers.toString(), Colors.blue),
-        _buildStatCard("Present", stats.presentToday.toString(), Colors.green),
-        _buildStatCard("Absent", stats.absentToday.toString(), Colors.red),
-        _buildStatCard("Leave", stats.leaveToday.toString(), Colors.orange),
+        _buildStatCard("Total Staff", stats.totalStaff.toString(), Colors.blue),
+        _buildStatCard("Present", stats.present.toString(), Colors.green),
+        _buildStatCard("Absent", stats.absent.toString(), Colors.red),
+        _buildStatCard("Leave", stats.leave.toString(), Colors.orange),
       ],
     );
   }
@@ -164,14 +160,32 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeptCard(item) {
+  Widget _buildStaffCard(StaffAttendanceData item) {
+    Color statusColor;
+    switch (item.attendanceStatus.toLowerCase()) {
+      case 'present':
+        statusColor = Colors.green;
+        break;
+      case 'absent':
+        statusColor = Colors.red;
+        break;
+      case 'leave':
+        statusColor = Colors.orange;
+        break;
+      case 'late':
+        statusColor = Colors.amber;
+        break;
+      default:
+        statusColor = Colors.blue;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -180,70 +194,91 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  item.departmentName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.teacherName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "UID: ${item.teacherUid} | ${item.wingName}",
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    "Total: ${item.totalTeachers}",
-                    style: const TextStyle(
+                    item.attendanceStatus,
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: statusColor,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildSmallStat("Present", item.present.toString(), Colors.green),
-                _buildSmallStat("Absent", item.absent.toString(), Colors.red),
-                _buildSmallStat("Leave", item.leave.toString(), Colors.orange),
-              ],
-            ),
+            if (item.checkIn.isNotEmpty || item.checkOut.isNotEmpty) ...[
+              const Divider(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (item.checkIn.isNotEmpty)
+                    Text(
+                      "In: ${item.checkIn}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  if (item.checkOut.isNotEmpty)
+                    Text(
+                      "Out: ${item.checkOut}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+            if (item.remarks.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "Remarks: ${item.remarks}",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSmallStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 }

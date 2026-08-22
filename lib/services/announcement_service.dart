@@ -80,6 +80,12 @@ class AnnouncementService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CreateAnnouncementResponse.fromJson(jsonDecode(response.body));
       } else {
+        if (response.statusCode == 403) {
+          return CreateAnnouncementResponse(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         final errorData = jsonDecode(response.body);
         return CreateAnnouncementResponse(
           success: false,
@@ -158,6 +164,12 @@ class AnnouncementService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CreateAnnouncementResponse.fromJson(jsonDecode(response.body));
       } else {
+        if (response.statusCode == 403) {
+          return CreateAnnouncementResponse(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         final errorData = jsonDecode(response.body);
         return CreateAnnouncementResponse(
           success: false,
@@ -194,6 +206,12 @@ class AnnouncementService {
         return TargetingDataResponse.fromJson(jsonDecode(response.body));
       } else {
         _log("Targeting Data Error: ${response.body}");
+        if (response.statusCode == 403) {
+          return TargetingDataResponse(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         return TargetingDataResponse(
           success: false,
           message: "Failed to load targeting data. Status: ${response.statusCode}",
@@ -229,6 +247,12 @@ class AnnouncementService {
         return AnnouncementTypeResponse.fromJson(jsonDecode(response.body));
       } else {
         _log("Types Error: ${response.body}");
+        if (response.statusCode == 403) {
+          return AnnouncementTypeResponse(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         return AnnouncementTypeResponse(
           success: false,
           message: "Failed to load announcement types. Status: ${response.statusCode}",
@@ -264,6 +288,12 @@ class AnnouncementService {
         return AnnouncementResponseModel.fromJson(jsonDecode(response.body));
       } else {
         _log("List Error: ${response.body}");
+        if (response.statusCode == 403) {
+          return AnnouncementResponseModel(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         return AnnouncementResponseModel(
           success: false,
           message: "Failed to load announcements. Status: ${response.statusCode}",
@@ -299,6 +329,12 @@ class AnnouncementService {
         return AnnouncementDetailResponse.fromJson(jsonDecode(response.body));
       } else {
         _log("Detail Error: ${response.body}");
+        if (response.statusCode == 403) {
+          return AnnouncementDetailResponse(
+            success: false,
+            message: "You don’t have access to modify this announcement. Please contact the administrator for access.",
+          );
+        }
         return AnnouncementDetailResponse(
           success: false,
           message: "Failed to load announcement details. Status: ${response.statusCode}",
@@ -329,6 +365,12 @@ class AnnouncementService {
       ).timeout(const Duration(seconds: 15));
 
       _log("Toggle Status Response: ${response.body}");
+      if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'message': "You don’t have access to modify this announcement. Please contact the administrator for access.",
+        };
+      }
       return jsonDecode(response.body);
     } catch (e) {
       _log("Error in toggleAnnouncementStatus: $e");
@@ -355,6 +397,12 @@ class AnnouncementService {
       ).timeout(const Duration(seconds: 15));
 
       _log("Lock Response: ${response.body}");
+      if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'message': "You don’t have access to modify this announcement. Please contact the administrator for access.",
+        };
+      }
       return jsonDecode(response.body);
     } catch (e) {
       _log("Error in lockAnnouncement: $e");
@@ -381,6 +429,12 @@ class AnnouncementService {
       ).timeout(const Duration(seconds: 15));
 
       _log("Unlock Response: ${response.body}");
+      if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'message': "You don’t have access to modify this announcement. Please contact the administrator for access.",
+        };
+      }
       return jsonDecode(response.body);
     } catch (e) {
       _log("Error in unlockAnnouncement: $e");
@@ -411,6 +465,12 @@ class AnnouncementService {
       ).timeout(const Duration(seconds: 15));
 
       _log("Publish Response: ${response.body}");
+      if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'message': "You don’t have access to modify this announcement. Please contact the administrator for access.",
+        };
+      }
       return jsonDecode(response.body);
     } catch (e) {
       _log("Error in publishAnnouncement: $e");
@@ -437,6 +497,12 @@ class AnnouncementService {
       ).timeout(const Duration(seconds: 15));
 
       _log("Unpublish Response: ${response.body}");
+      if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'message': "You don’t have access to modify this announcement. Please contact the administrator for access.",
+        };
+      }
       return jsonDecode(response.body);
     } catch (e) {
       _log("Error in unpublishAnnouncement: $e");

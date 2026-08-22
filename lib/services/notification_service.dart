@@ -25,8 +25,11 @@ class NotificationService extends GetxService {
       'high_importance_channel',
       'High Importance Notifications',
       description: 'This channel is used for important notifications.',
-      importance: Importance.high,
+      importance: Importance.max, // Changed to max
       playSound: true,
+      enableLights: true,
+      enableVibration: true,
+      showBadge: true,
     );
 
     await _localNotifications
@@ -34,13 +37,16 @@ class NotificationService extends GetxService {
         ?.createNotificationChannel(channel);
 
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
     const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
     await _localNotifications.initialize(
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap when app is in foreground or background
         _handleNotificationTap(response.payload);
       },
     );
@@ -62,7 +68,9 @@ class NotificationService extends GetxService {
               channelDescription: channel.description,
               importance: Importance.max,
               priority: Priority.high,
+              playSound: true,
               icon: android?.smallIcon ?? '@mipmap/ic_launcher',
+              fullScreenIntent: true, // This helps in some background cases
             ),
             iOS: const DarwinNotificationDetails(
               presentAlert: true,
@@ -109,10 +117,17 @@ class NotificationService extends GetxService {
       'High Importance Notifications',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+      styleInformation: BigTextStyleInformation(''),
     );
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
-      iOS: DarwinNotificationDetails(),
+      iOS: DarwinNotificationDetails(
+        presentSound: true,
+        presentAlert: true,
+        presentBadge: true,
+      ),
     );
     await _localNotifications.show(
       DateTime.now().millisecond,

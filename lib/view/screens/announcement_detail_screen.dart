@@ -8,7 +8,8 @@ class AnnouncementDetailScreen extends StatefulWidget {
   const AnnouncementDetailScreen({super.key, required this.id});
 
   @override
-  State<AnnouncementDetailScreen> createState() => _AnnouncementDetailScreenState();
+  State<AnnouncementDetailScreen> createState() =>
+      _AnnouncementDetailScreenState();
 }
 
 class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
@@ -25,131 +26,142 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFE3E9FF),
-            Colors.white,
-          ],
-        ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          backgroundColor: const Color(0xFFF8F9FE),
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: const Color(0xFF1E293B),
+              size: 20,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
             "ANNOUNCEMENT DETAILS",
             style: TextStyle(
-              color: Colors.white,
+              color: const Color(0xFF1E293B),
               fontWeight: FontWeight.bold,
               fontSize: 18,
               letterSpacing: 1.1,
             ),
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
-          ),
         ),
         body: Obx(() {
-        if (controller.isLoadingDetails.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+          if (controller.isLoadingDetails.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final detail = controller.announcementDetail.value;
-        if (detail == null) {
-          return const Center(
-            child: Text(
-              "No details found",
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-          );
-        }
+          final detail = controller.announcementDetail.value;
+          if (detail == null) {
+            return const Center(
+              child: Text(
+                "No details found",
+                style: TextStyle(color: Color(0xFF64748B)),
+              ),
+            );
+          }
 
-        return RefreshIndicator(
-          onRefresh: () => controller.fetchAnnouncementDetails(widget.id),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (detail.imageUrl != null) ...[
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade300, width: 1),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(11),
-                      child: Image.network(
-                        detail.imageUrl!,
-                        width: double.infinity,
-                        height: 200,
-                        fit: BoxFit.fill,
-                        errorBuilder: (context, error, stackTrace) => Container(
+          return RefreshIndicator(
+            onRefresh: () => controller.fetchAnnouncementDetails(widget.id),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (detail.imageUrl != null) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.grey.shade300,
+                          width: 1,
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(11),
+                        child: Image.network(
+                          detail.imageUrl!,
+                          width: double.infinity,
                           height: 200,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                          fit: BoxFit.fill,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                height: 200,
+                                color: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                ),
+                              ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-                Text(
-                  detail.title,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300, width: 1),
-                  ),
-                  child: Text(
-                    detail.description,
-                    style: TextStyle(
-                      fontSize: 15,
-                      height: 1.5,
-                      color: Colors.grey[800],
+                    const SizedBox(height: 20),
+                  ],
+                  Text(
+                    detail.title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                _buildInfoSection(
-                  "Schedule Information",
-                  [
-                    _buildInfoRow(Icons.calendar_today, "From Date", detail.fromDate),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, width: 1),
+                    ),
+                    child: Text(
+                      detail.description,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildInfoSection("Schedule Information", [
+                    _buildInfoRow(
+                      Icons.calendar_today,
+                      "From Date",
+                      detail.fromDate,
+                    ),
                     if (detail.fromTime != null)
-                      _buildInfoRow(Icons.access_time, "From Time", detail.fromTime!),
-                    _buildInfoRow(Icons.calendar_today, "To Date", detail.toDate),
+                      _buildInfoRow(
+                        Icons.access_time,
+                        "From Time",
+                        detail.fromTime!,
+                      ),
+                    _buildInfoRow(
+                      Icons.calendar_today,
+                      "To Date",
+                      detail.toDate,
+                    ),
                     if (detail.toTime != null)
-                      _buildInfoRow(Icons.access_time, "To Time", detail.toTime!),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildInfoSection(
-                  "Target Audience",
-                  [
-                    _buildInfoRow(Icons.group, "Target Type", detail.targetType.capitalizeFirst ?? detail.targetType),
+                      _buildInfoRow(
+                        Icons.access_time,
+                        "To Time",
+                        detail.toTime!,
+                      ),
+                  ]),
+                  const SizedBox(height: 16),
+                  _buildInfoSection("Target Audience", [
+                    _buildInfoRow(
+                      Icons.group,
+                      "Target Type",
+                      detail.targetType.capitalizeFirst ?? detail.targetType,
+                    ),
                     _buildInfoRow(
                       Icons.person_outline,
                       "Send to Parents",
@@ -160,28 +172,30 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       "Send to Teachers",
                       detail.sendToTeachers == 1 ? "Yes" : "No",
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildInfoSection(
-                  "Status",
-                  [
-                    _buildInfoRow(Icons.info_outline, "Submit Status", detail.submitStatus.capitalizeFirst ?? detail.submitStatus),
+                  ]),
+                  const SizedBox(height: 16),
+                  _buildInfoSection("Status", [
+                    _buildInfoRow(
+                      Icons.info_outline,
+                      "Submit Status",
+                      detail.submitStatus.capitalizeFirst ??
+                          detail.submitStatus,
+                    ),
                     _buildStatusToggleRow(
                       Icons.publish,
                       "Publish Status",
                       detail.publishStatus,
                       () => controller.toggleStatus(detail.id),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 40),
-              ],
+                  ]),
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
-          ),
-        );
-      }),
-    ));
+          );
+        }),
+      ),
+    );
   }
 
   Widget _buildInfoSection(String title, List<Widget> children) {
@@ -207,9 +221,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
-          child: Column(
-            children: children,
-          ),
+          child: Column(children: children),
         ),
       ],
     );
@@ -241,8 +253,14 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     );
   }
 
-  Widget _buildStatusToggleRow(IconData icon, String label, String status, VoidCallback onToggle) {
-    bool isActive = status.toLowerCase() == 'active' || status.toLowerCase() == 'published';
+  Widget _buildStatusToggleRow(
+    IconData icon,
+    String label,
+    String status,
+    VoidCallback onToggle,
+  ) {
+    bool isActive =
+        status.toLowerCase() == 'active' || status.toLowerCase() == 'published';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

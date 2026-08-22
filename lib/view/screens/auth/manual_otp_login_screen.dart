@@ -62,7 +62,11 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_rounded, color: Color(0xFF9A3412), size: 28),
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFF9A3412),
+                    size: 28,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -142,7 +146,10 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
                 hintText: "-  -  -  -  -  -",
-                prefixIcon: const Icon(Icons.confirmation_number_outlined, size: 20),
+                prefixIcon: const Icon(
+                  Icons.confirmation_number_outlined,
+                  size: 20,
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 counterText: "",
@@ -161,39 +168,51 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
 
             SizedBox(
               width: double.infinity,
-              child: Obx(() => ElevatedButton(
-                onPressed: _authController.isLoading.value
-                    ? null
-                    : () => _authController.verifyManualOtp(
+              child: Obx(
+                () => ElevatedButton(
+                  onPressed: _authController.isLoading.value
+                      ? null
+                      : () => _authController.verifyManualOtp(
                           _phoneController.text.trim(),
                           _otpController.text.trim(),
                         ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E2E5D),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E2E5D),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: _authController.isLoading.value
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Login With Manual OTP",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
-                child: _authController.isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Text(
-                        "Login With Manual OTP",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-              )),
+              ),
             ),
             const SizedBox(height: 24),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.lock_outline, size: 16, color: Color(0xFF64748B)),
+                const Icon(
+                  Icons.lock_outline,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

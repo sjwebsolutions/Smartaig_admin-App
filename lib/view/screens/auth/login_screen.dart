@@ -21,7 +21,10 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 10.0,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -110,11 +113,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Login Card
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 24,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                    border: Border.all(
+                      color: const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,29 +140,41 @@ class _LoginScreenState extends State<LoginScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Row(
                               children: [
                                 Image.network(
                                   "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg",
                                   width: 20,
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    width: 20,
-                                    height: 14,
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Colors.orange, Colors.white, Colors.green],
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Container(
+                                        width: 20,
+                                        height: 14,
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Colors.orange,
+                                              Colors.white,
+                                              Colors.green,
+                                            ],
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            2,
+                                          ),
+                                        ),
                                       ),
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
                                 ),
                                 const SizedBox(width: 6),
                                 const Text(
@@ -176,18 +197,29 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: const TextStyle(fontSize: 15),
                               decoration: InputDecoration(
                                 hintText: "Enter Mobile numb...",
-                                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 14,
+                                ),
                                 filled: true,
                                 fillColor: Colors.white,
                                 counterText: "",
-                                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: Color(0xFF0038A8), width: 1.5),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFF0038A8),
+                                    width: 1.5,
+                                  ),
                                 ),
                               ),
                             ),
@@ -199,43 +231,50 @@ class _LoginScreenState extends State<LoginScreen> {
                       // Send OTP Button
                       SizedBox(
                         width: double.infinity,
-                        child: Obx(() => ElevatedButton(
-                          onPressed: _authController.isLoading.value
-                              ? null
-                              : () => _authController.sendOtp(_phoneController.text.trim()),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1E2E5D),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        child: Obx(
+                          () => ElevatedButton(
+                            onPressed: _authController.isLoading.value
+                                ? null
+                                : () => _authController.sendOtp(
+                                    _phoneController.text.trim(),
+                                  ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E2E5D),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 2,
                             ),
-                            elevation: 2,
+                            child: _authController.isLoading.value
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Send OTP",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
-                          child: _authController.isLoading.value
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Text(
-                                  "Send OTP",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        )),
+                        ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       Center(
                         child: TextButton(
-                          onPressed: () => Get.to(() => const ManualOtpLoginScreen()),
-                          style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                          onPressed: () =>
+                              Get.to(() => const ManualOtpLoginScreen()),
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                          ),
                           child: const Text(
                             "Didn't receive OTP? Use Manual OTP",
                             style: TextStyle(
@@ -250,7 +289,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Bottom Badges
                 Row(
                   children: [
@@ -272,7 +311,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                
+
                 const Text(
                   "Only registered staff can login in",
                   style: TextStyle(
@@ -289,7 +328,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildBadge({required IconData icon, required String title, required String subtitle}) {
+  Widget _buildBadge({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
