@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../view_models/getX/announcement_controller.dart';
 import 'add_announcement_screen.dart';
+import '../../utils/app_colors.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
   final int id;
@@ -26,30 +27,18 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "ANNOUNCEMENT DETAILS",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -117,8 +106,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.cardColor,
+                      borderRadius: AppColors.cardBorderRadius,
                       border: Border.all(color: Colors.grey.shade300, width: 1),
                     ),
                     child: Text(
@@ -217,8 +206,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: AppColors.cardColor,
+            borderRadius: AppColors.cardBorderRadius,
             border: Border.all(color: Colors.grey.shade300, width: 1),
           ),
           child: Column(children: children),

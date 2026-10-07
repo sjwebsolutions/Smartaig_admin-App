@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view_models/getX/auth_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/dashboard_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/policy_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/support_controller.dart';
-import 'package:smart_aig_admins_app/view/screens/policy_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _SettingScreenState extends State<SettingScreen> {
       Get.find<DashboardController>();
   final PolicyController policyController = Get.put(PolicyController());
   final SupportController supportController = Get.put(SupportController());
-  String _appVersion = "2.0.4";
+  String _appVersion = "2.0.1+21";
 
   @override
   void initState() {
@@ -42,80 +43,140 @@ class _SettingScreenState extends State<SettingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPushed = ModalRoute.of(context)?.canPop ?? false;
+
     return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFE3E9FF), Colors.white],
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+        appBar: isPushed
+            ? AppBar(
+                toolbarHeight: AppColors.appBarToolbarHeight,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: AppColors.appBarCenterTitle,
+                leading: const CustomBackButton(),
+                title: const Text(
+                  "SETTINGS",
+                  style: AppColors.appBarTitleStyle,
+                ),
+              )
+            : null,
+        body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                _buildProfileCard(),
+                const SizedBox(height: 12),
+                _buildPhoneCard(),
+                const SizedBox(height: 12),
+                _buildAppVersionCard(),
+                const SizedBox(height: 12),
+                _buildPrivacyPolicyCard(),
+                const SizedBox(height: 12),
+                _buildTermsCard(),
+                const SizedBox(height: 12),
+                _buildSupportCard(),
+                const SizedBox(height: 12),
+                _buildLogoutCard(),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
         ),
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              _buildProfileCard(),
-              const SizedBox(height: 10),
-              _buildPhoneCard(),
-              const SizedBox(height: 10),
-              _buildLegalCard(),
-              const SizedBox(height: 10),
-              Obx(
-                () => Container(
+    );
+  }
+
+  Widget _buildSettingCard({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+    Color iconColor = const Color(0xFF0038A8),
+    Color titleColor = const Color(0xFF1E293B),
+    bool isDestructive = false,
+  }) {
+    final effectiveIconColor = isDestructive ? Colors.red : iconColor;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: AppColors.cardBorderRadius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: effectiveIconColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
-                  child: ListTile(
-                    onTap: authController.isLoading.value
-                        ? null
-                        : () => _showLogoutDialog(context),
-                    leading: authController.isLoading.value
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.red,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.logout_rounded,
-                            color: Colors.red,
-                            size: 24,
-                          ),
-                    title: const Text(
-                      "Logout",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                    subtitle: const Text(
-                      "Sign out from this device",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    trailing: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
+                  child: Icon(
+                    icon,
+                    color: effectiveIconColor,
+                    size: 20,
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-            ],
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        style: TextStyle(
+                          fontSize: subtitle != null ? 12 : 14,
+                          fontWeight: subtitle != null ? FontWeight.w500 : FontWeight.w600,
+                          color: isDestructive
+                              ? Colors.red
+                              : (subtitle != null ? const Color(0xFF64748B) : titleColor),
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          subtitle,
+                          maxLines: 2,
+                          softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (trailing != null) ...[
+                  const SizedBox(width: 8),
+                  trailing,
+                ],
+              ],
+            ),
           ),
         ),
       ),
@@ -125,306 +186,339 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget _buildProfileCard() {
     return Obx(() {
       final user = dashboardController.dashboardData.value?.teacher;
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: _buildListRow("Logged By :", user?.name ?? "N/A"),
+      return _buildSettingCard(
+        icon: Icons.person_outline_rounded,
+        title: "Logged By",
+        subtitle: user?.name ?? "N/A",
       );
     });
-  }
-
-  Widget _buildListRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-      child: Row(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0038A8).withAlpha(15),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: const Color(0xFF0038A8), size: 22),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        trailing: const Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 16,
-          color: Colors.grey,
-        ),
-      ),
-    );
   }
 
   Widget _buildPhoneCard() {
     return Obx(() {
       final user = dashboardController.dashboardData.value?.teacher;
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: _buildCompactTile(
-          icon: Icons.phone_android_rounded,
-          title: "Phone Number",
-          trailing: Text(
-            user?.phone ?? "N/A",
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-            ),
-          ),
-        ),
+      return _buildSettingCard(
+        icon: Icons.phone_android_rounded,
+        title: "Registered Mobile",
+        subtitle: user?.phone ?? "N/A",
       );
     });
   }
 
-  Widget _buildLegalCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+  Widget _buildAppVersionCard() {
+    return _buildSettingCard(
+      icon: Icons.info_outline_rounded,
+      title: "App Version",
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEEF2FF),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          _appVersion,
+          style: const TextStyle(
+            color: Color(0xFF0038A8),
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildCompactTile(
-            icon: Icons.info_outline_rounded,
-            title: "App Version",
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEEF2FF),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                _appVersion,
-                style: const TextStyle(
-                  color: Color(0xFF4F46E5),
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          const Divider(height: 1, indent: 55, endIndent: 15),
-          _buildCompactTile(
-            icon: Icons.privacy_tip_outlined,
-            title: "Privacy Policy",
-            onTap: () {
-              if (policyController.isLoading.value) {
-                Get.dialog(
-                  const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF6366F1)),
-                  ),
-                  barrierDismissible: false,
-                );
-                policyController.getPolicy().then((_) {
-                  Get.back();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PolicyDetailScreen(
-                        title: "Privacy Policy",
-                        htmlContent: policyController.privacyPolicy,
-                      ),
-                    ),
-                  );
-                });
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PolicyDetailScreen(
-                      title: "Privacy Policy",
-                      htmlContent: policyController.privacyPolicy,
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-          const Divider(height: 1, indent: 55, endIndent: 15),
-          _buildCompactTile(
-            icon: Icons.description_outlined,
-            title: "Terms of Use",
-            onTap: () {
-              if (policyController.isLoading.value) {
-                Get.dialog(
-                  const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF6366F1)),
-                  ),
-                  barrierDismissible: false,
-                );
-                policyController.getPolicy().then((_) {
-                  Get.back();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PolicyDetailScreen(
-                        title: "Terms of Use",
-                        htmlContent: policyController.termsOfUse,
-                      ),
-                    ),
-                  );
-                });
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PolicyDetailScreen(
-                      title: "Terms of Use",
-                      htmlContent: policyController.termsOfUse,
-                    ),
-                  ),
-                );
-              }
-            },
-          ),
-          const Divider(height: 1, indent: 55, endIndent: 15),
-          _buildCompactTile(
-            icon: Icons.headset_mic_outlined,
-            title: "Contact Support",
-            onTap: () {
-              if (supportController.isLoading.value) {
-                Get.dialog(
-                  const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF6366F1)),
-                  ),
-                  barrierDismissible: false,
-                );
-                supportController.fetchSupportSettings().then((_) {
-                  Get.back();
-                  _showSupportDialog(context);
-                });
-              } else {
-                if (supportController.supportData.value == null) {
-                  Get.dialog(
-                    const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF6366F1),
-                      ),
-                    ),
-                    barrierDismissible: false,
-                  );
-                  supportController.fetchSupportSettings().then((_) {
-                    Get.back();
-                    _showSupportDialog(context);
-                  });
-                } else {
-                  _showSupportDialog(context);
-                }
-              }
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCompactTile({
-    required IconData icon,
+  Widget _buildPrivacyPolicyCard() {
+    return _buildSettingCard(
+      icon: Icons.privacy_tip_outlined,
+      title: "Privacy Policy",
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 14,
+        color: Colors.grey,
+      ),
+      onTap: () => _openPolicyDialog("Privacy Policy", Icons.privacy_tip_outlined, true),
+    );
+  }
+
+  Widget _buildTermsCard() {
+    return _buildSettingCard(
+      icon: Icons.description_outlined,
+      title: "Terms of Use",
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 14,
+        color: Colors.grey,
+      ),
+      onTap: () => _openPolicyDialog("Terms of Use", Icons.description_outlined, false),
+    );
+  }
+
+  void _openPolicyDialog(String title, IconData icon, bool isPrivacyPolicy) {
+    if (policyController.isLoading.value) {
+      Get.dialog(
+        const Center(
+          child: CircularProgressIndicator(color: Color(0xFF0038A8)),
+        ),
+        barrierDismissible: false,
+      );
+      policyController.getPolicy().then((_) {
+        Get.back();
+        _showCenterPolicyDialog(
+          title: title,
+          htmlContent: isPrivacyPolicy
+              ? policyController.privacyPolicy
+              : policyController.termsOfUse,
+          icon: icon,
+        );
+      });
+    } else {
+      _showCenterPolicyDialog(
+        title: title,
+        htmlContent: isPrivacyPolicy
+            ? policyController.privacyPolicy
+            : policyController.termsOfUse,
+        icon: icon,
+      );
+    }
+  }
+
+  void _showCenterPolicyDialog({
     required String title,
-    Widget? trailing,
-    VoidCallback? onTap,
+    required String htmlContent,
+    required IconData icon,
   }) {
-    return ListTile(
-      onTap: onTap,
-      dense: true,
-      leading: Icon(icon, color: const Color(0xFF6366F1), size: 22),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: Color(0xFF1E293B),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        elevation: 12,
+        backgroundColor: Colors.white,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          constraints: BoxConstraints(
+            maxHeight: Get.height * 0.78,
+            maxWidth: 440,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dialog Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0038A8).withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: const Color(0xFF0038A8),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Get.back(),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          size: 18,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+
+              // Scrollable Policy HTML/Text Content
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: htmlContent.trim().isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Center(
+                            child: Text(
+                              "No content available.",
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        )
+                      : HtmlWidget(
+                          htmlContent,
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            height: 1.6,
+                            color: Color(0xFF334155),
+                            fontFamily: 'Inter',
+                          ),
+                          customStylesBuilder: (element) {
+                            if (element.localName == 'h1') {
+                              return {
+                                'font-size': '18px',
+                                'font-weight': 'bold',
+                                'color': '#1E293B',
+                                'margin-bottom': '10px',
+                                'margin-top': '6px',
+                              };
+                            }
+                            if (element.localName == 'h2') {
+                              return {
+                                'font-size': '16px',
+                                'font-weight': 'bold',
+                                'color': '#334155',
+                                'margin-bottom': '8px',
+                              };
+                            }
+                            if (element.localName == 'p') {
+                              return {'margin-bottom': '12px'};
+                            }
+                            if (element.localName == 'a') {
+                              return {
+                                'color': '#0038A8',
+                                'text-decoration': 'none',
+                                'font-weight': '600',
+                              };
+                            }
+                            return null;
+                          },
+                        ),
+                ),
+              ),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+
+              // Bottom Close Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Get.back(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,
+                      foregroundColor: AppColors.buttonTextColor,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: AppColors.buttonShape,
+                    ),
+                    child: const Text(
+                      "Close",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      trailing:
-          trailing ??
-          const Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 14,
-            color: Colors.grey,
-          ),
+      barrierDismissible: true,
+    );
+  }
+
+  Widget _buildSupportCard() {
+    return _buildSettingCard(
+      icon: Icons.headset_mic_outlined,
+      title: "Contact Support",
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        size: 14,
+        color: Colors.grey,
+      ),
+      onTap: () {
+        if (supportController.isLoading.value) {
+          Get.dialog(
+            const Center(
+              child: CircularProgressIndicator(color: Color(0xFF0038A8)),
+            ),
+            barrierDismissible: false,
+          );
+          supportController.fetchSupportSettings().then((_) {
+            Get.back();
+            if (mounted) _showSupportDialog(context);
+          });
+        } else {
+          if (supportController.supportData.value == null) {
+            Get.dialog(
+              const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF0038A8),
+                ),
+              ),
+              barrierDismissible: false,
+            );
+            supportController.fetchSupportSettings().then((_) {
+              Get.back();
+              if (mounted) _showSupportDialog(context);
+            });
+          } else {
+            _showSupportDialog(context);
+          }
+        }
+      },
+    );
+  }
+
+  Widget _buildLogoutCard() {
+    return Obx(
+      () => _buildSettingCard(
+        icon: Icons.logout_rounded,
+        title: "Logout",
+        isDestructive: true,
+        trailing: authController.isLoading.value
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.red,
+                ),
+              )
+            : const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: Colors.red,
+              ),
+        onTap: authController.isLoading.value
+            ? null
+            : () => _showLogoutDialog(context),
+      ),
     );
   }
 
@@ -454,7 +548,7 @@ class _SettingScreenState extends State<SettingScreen> {
   void _showSupportDialog(BuildContext context) {
     final support = supportController.supportData.value;
     if (support == null) {
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
         "Support details not loaded yet. Please try again.",
       );
@@ -467,7 +561,7 @@ class _SettingScreenState extends State<SettingScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.headset_mic_outlined, color: Color(0xFF6366F1)),
+            Icon(Icons.headset_mic_outlined, color: Color(0xFF0038A8)),
             SizedBox(width: 8),
             Text(
               "Contact Support",
@@ -491,11 +585,11 @@ class _SettingScreenState extends State<SettingScreen> {
               const SizedBox(height: 12),
             ],
             if (support.mobile.isNotEmpty)
-              _buildSupportCard(
+              _buildSupportDialogItem(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
+                    color: Colors.blue.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -509,11 +603,11 @@ class _SettingScreenState extends State<SettingScreen> {
                 onTap: () => _launchURL("tel:${support.mobile}"),
               ),
             if (support.whatsapp.isNotEmpty)
-              _buildSupportCard(
+              _buildSupportDialogItem(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.1),
+                    color: const Color(0xFF25D366).withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -531,11 +625,11 @@ class _SettingScreenState extends State<SettingScreen> {
                 },
               ),
             if (support.email.isNotEmpty)
-              _buildSupportCard(
+              _buildSupportDialogItem(
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.orange.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -556,7 +650,7 @@ class _SettingScreenState extends State<SettingScreen> {
             child: const Text(
               "Close",
               style: TextStyle(
-                color: Color(0xFF6366F1),
+                color: Color(0xFF0038A8),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -566,7 +660,7 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  Widget _buildSupportCard({
+  Widget _buildSupportDialogItem({
     required Widget leading,
     required String title,
     required String subtitle,
@@ -580,7 +674,7 @@ class _SettingScreenState extends State<SettingScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -620,10 +714,10 @@ class _SettingScreenState extends State<SettingScreen> {
     final Uri url = Uri.parse(urlString);
     try {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        Get.snackbar("Error", "Could not open $urlString");
+        CustomSnackBar.showError("Error", "Could not open $urlString");
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not open link");
+      CustomSnackBar.showError("Error", "Could not open link");
     }
   }
 }

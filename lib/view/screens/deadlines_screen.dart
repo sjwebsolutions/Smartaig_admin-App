@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/deadlines_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class DeadlinesScreen extends StatelessWidget {
   const DeadlinesScreen({super.key});
@@ -11,30 +12,19 @@ class DeadlinesScreen extends StatelessWidget {
     final DeadlinesController controller = Get.put(DeadlinesController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "DEADLINES",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -59,6 +49,7 @@ class DeadlinesScreen extends StatelessWidget {
           );
         }),
       ),
+      ),
     );
   }
 
@@ -67,8 +58,8 @@ class DeadlinesScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -153,12 +144,10 @@ class DeadlinesScreen extends StatelessWidget {
                     icon: const Icon(Icons.link, size: 18),
                     label: const Text("Open Portal"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0038A8),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.buttonColor,
+                      foregroundColor: AppColors.buttonTextColor,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: AppColors.buttonShape,
                     ),
                   ),
                 ),
@@ -177,12 +166,10 @@ class DeadlinesScreen extends StatelessWidget {
                     icon: const Icon(Icons.description_outlined, size: 18),
                     label: const Text("View Doc"),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0038A8),
-                      side: const BorderSide(color: Color(0xFF0038A8)),
+                      foregroundColor: AppColors.buttonColor,
+                      side: const BorderSide(color: AppColors.buttonColor),
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      shape: AppColors.buttonShape,
                     ),
                   ),
                 ),
@@ -223,10 +210,10 @@ class DeadlinesScreen extends StatelessWidget {
     final Uri url = Uri.parse(urlString);
     try {
       if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        Get.snackbar("Error", "Could not launch $urlString");
+        CustomSnackBar.showError("Error", "Could not launch $urlString");
       }
     } catch (e) {
-      Get.snackbar("Error", "Could not open link");
+      CustomSnackBar.showError("Error", "Could not open link");
     }
   }
 }

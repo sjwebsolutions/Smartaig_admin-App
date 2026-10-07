@@ -7,6 +7,7 @@ import 'package:smart_aig_admins_app/services/auth_service.dart';
 import 'package:smart_aig_admins_app/view/screens/auth/login_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/auth/otp_verification_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/main_screen.dart';
+import '../../utils/custom_snackbar.dart';
 
 class AuthController extends GetxController {
   final AuthService _authService = AuthService();
@@ -26,25 +27,16 @@ class AuthController extends GetxController {
       Get.offAll(() => const LoginScreen());
       
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           "Logged out successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
         );
       }
     } catch (e) {
       print("DEBUG: Logout Error: $e");
-      Get.snackbar(
-        "Error",
-        "Logout failed: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
+      CustomSnackBar.showError(
+        "Logout Failed",
+        "Unable to complete logout. Please check your connection and try again.",
       );
     } finally {
       isLoading.value = false;
@@ -55,13 +47,9 @@ class AuthController extends GetxController {
     print("DEBUG: sendOtp called with phone: $phone");
     if (phone.isEmpty || phone.length != 10) {
       print("DEBUG: Validation failed for phone: $phone");
-      Get.snackbar(
-        "Error",
+      CustomSnackBar.showError(
+        "Invalid Number",
         "Please enter a valid 10-digit mobile number",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
       );
       return;
     }
@@ -76,27 +64,22 @@ class AuthController extends GetxController {
         phoneNumber.value = phone;
         print("DEBUG: Success! Navigating to OtpVerificationScreen");
         Get.to(() => OtpVerificationScreen(phoneNumber: "+91 $phone"));
+        CustomSnackBar.showSuccess(
+          "Success",
+          response['message'] ?? "OTP sent successfully to your WhatsApp number",
+        );
       } else {
         print("DEBUG: API Error: ${response['message']}");
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
-          response['message'] ?? "Something went wrong",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
+          response['message'] ?? "Something went wrong. Please try again.",
         );
       }
     } catch (e) {
       print("DEBUG: Exception caught: $e");
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
-        "Failed to send OTP: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
+        "Failed to send OTP. Please check your internet connection and try again.",
       );
     } finally {
       isLoading.value = false;
@@ -106,13 +89,9 @@ class AuthController extends GetxController {
 
   Future<void> verifyOtp(String otpCode) async {
     if (otpCode.length != 6) {
-      Get.snackbar(
-        "Error",
+      CustomSnackBar.showError(
+        "Invalid OTP",
         "Please enter the 6-digit OTP",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
       );
       return;
     }
@@ -131,25 +110,21 @@ class AuthController extends GetxController {
         await prefs.setString('active_session', response.data!.activeSession);
 
         Get.offAll(() => const MainScreen());
+        CustomSnackBar.showSuccess(
+          "Success",
+          "Login Successful",
+        );
       } else {
-        Get.snackbar(
-          "Error",
-          response.message.isEmpty ? "Verification failed" : response.message,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
+        CustomSnackBar.showError(
+          "Verification Failed",
+          response.message.isEmpty ? "Invalid OTP. Please try again." : response.message,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      print("DEBUG: verifyOtp Exception: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
+        "Verification failed. Please check your internet connection and try again.",
       );
     } finally {
       isLoading.value = false;
@@ -160,25 +135,17 @@ class AuthController extends GetxController {
     print("DEBUG: verifyManualOtp called with phone: $phone, otp: $otpCode");
     if (phone.length != 10) {
       print("DEBUG: Manual OTP Validation failed: Phone length is ${phone.length}");
-      Get.snackbar(
-        "Error",
+      CustomSnackBar.showError(
+        "Invalid Number",
         "Please enter valid 10-digit mobile number",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
       );
       return;
     }
     if (otpCode.length != 6) {
       print("DEBUG: Manual OTP Validation failed: OTP length is ${otpCode.length}");
-      Get.snackbar(
-        "Error",
+      CustomSnackBar.showError(
+        "Invalid OTP",
         "Please enter the 6-digit OTP",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
       );
       return;
     }
@@ -200,37 +167,23 @@ class AuthController extends GetxController {
         await prefs.setString('active_session', response.data!.activeSession);
 
         Get.offAll(() => const MainScreen());
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           "Login Successful",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
         );
       } else {
         String errorMsg = response.message.isEmpty ? "Verification failed" : response.message;
         print("DEBUG: Manual OTP Login Failed: $errorMsg");
-        Get.snackbar(
-          "Error",
+        CustomSnackBar.showError(
+          "Verification Failed",
           errorMsg,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
         );
       }
     } catch (e) {
       print("DEBUG: Manual OTP Exception: $e");
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
+        "Verification failed. Please check your internet connection and try again.",
       );
     } finally {
       isLoading.value = false;

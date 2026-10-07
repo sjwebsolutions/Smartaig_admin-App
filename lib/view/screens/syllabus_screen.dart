@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'syllabus_attachment_viewer.dart';
 import '../../view_models/getX/syllabus_controller.dart';
 import '../../models/syllabus_model.dart';
+import '../../utils/app_colors.dart';
 
 class SyllabusScreen extends StatelessWidget {
   const SyllabusScreen({super.key});
@@ -12,67 +14,123 @@ class SyllabusScreen extends StatelessWidget {
     final SyllabusController controller = Get.put(SyllabusController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "SYLLABUS",
-            style: TextStyle(
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
-        body: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        body: Column(
+          children: [
+            Obx(() {
+              if (controller.termsList.isEmpty) return const SizedBox.shrink();
+              return Container(
+                height: 60,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: controller.termsList.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return _buildTermChip(null, "All");
+                    }
+                    final term = controller.termsList[index - 1];
+                    return _buildTermChip(term.id, term.name);
+                  },
+                ),
+              );
+            }),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (controller.syllabusList.isEmpty) {
-            return const Center(
-              child: Text(
-                "No Syllabus available",
-                style: TextStyle(color: Color(0xFF64748B)),
-              ),
-            );
-          }
+                if (controller.syllabusList.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No Syllabus available",
+                      style: TextStyle(color: Color(0xFF64748B)),
+                    ),
+                  );
+                }
 
-          return RefreshIndicator(
-            onRefresh: () => controller.fetchSyllabus(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.syllabusList.length,
-              itemBuilder: (context, index) {
-                final syllabus = controller.syllabusList[index];
-                return _buildSyllabusCard(context, syllabus);
-              },
+                return RefreshIndicator(
+                  onRefresh: () => controller.fetchSyllabus(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: controller.syllabusList.length,
+                    itemBuilder: (context, index) {
+                      final syllabus = controller.syllabusList[index];
+                      return _buildSyllabusCard(context, syllabus);
+                    },
+                  ),
+                );
+              }),
             ),
-          );
-        }),
+          ],
+        ),
+      ),
       ),
     );
   }
 
+  Widget _buildTermChip(int? id, String name) {
+    final SyllabusController controller = Get.find<SyllabusController>();
+    return Obx(() {
+      final isSelected = controller.selectedTermId.value == id;
+      return GestureDetector(
+        onTap: () => controller.selectTerm(id),
+        child: Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF0038A8) : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF0038A8) : const Color(0xFFE2E8F0),
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF0038A8).withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              name,
+              style: TextStyle(
+                color: isSelected ? Colors.white : const Color(0xFF64748B),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
   Widget _buildSyllabusCard(BuildContext context, Syllabus syllabus) {
     return Card(
+      color: AppColors.cardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: AppColors.cardBorderRadius,
         side: const BorderSide(
           color: Color(0xFF0038A8),
           width: 1.2,
@@ -88,19 +146,33 @@ class SyllabusScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    syllabus.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        syllabus.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Uploaded by ${syllabus.uploadedBy}",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0038A8).withAlpha(25),
+                    color: const Color(0xFF0038A8).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -153,45 +225,70 @@ class SyllabusScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            if (syllabus.attachments != null && syllabus.attachments!.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: syllabus.attachments!.map((attachment) {
-                  return InkWell(
-                    onTap: () => _launchURL(attachment.url),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withAlpha(25),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.withAlpha(75)),
+            if (syllabus.attachments != null && syllabus.attachments!.isNotEmpty) ...[
+              ...syllabus.attachments!.map((attachment) {
+                final isImage = attachment.isImage;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isImage
+                            ? Icons.image_outlined
+                            : Icons.picture_as_pdf_outlined,
+                        size: 20,
+                        color: isImage ? Colors.blue : Colors.red,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            attachment.ext.toUpperCase() == 'PDF'
-                                ? Icons.picture_as_pdf
-                                : Icons.insert_drive_file,
-                            size: 14,
-                            color: Colors.red,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          attachment.title,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1E293B),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            attachment.title,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ],
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          Get.to(() => SyllabusAttachmentViewer(
+                                url: attachment.url,
+                                title: attachment.title,
+                                isImage: isImage,
+                              ));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonColor,
+                          foregroundColor: AppColors.buttonTextColor,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 0),
+                          minimumSize: const Size(0, 32),
+                          shape: AppColors.buttonShape,
+                        ),
+                        child: Text(
+                          isImage ? "View Image" : "View PDF",
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
           ],
         ),
       ),
@@ -226,7 +323,7 @@ class SyllabusScreen extends StatelessWidget {
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      Get.snackbar("Error", "Could not launch URL");
+      CustomSnackBar.showError("Error", "Could not launch URL");
     }
   }
 }

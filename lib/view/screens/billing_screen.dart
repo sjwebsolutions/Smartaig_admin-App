@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/billing_controller.dart';
 import 'package:smart_aig_admins_app/models/billing_model.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class BillingScreen extends StatelessWidget {
   const BillingScreen({super.key});
@@ -11,30 +12,19 @@ class BillingScreen extends StatelessWidget {
     final BillingController controller = Get.put(BillingController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "BILLING",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -75,6 +65,7 @@ class BillingScreen extends StatelessWidget {
           );
         }),
       ),
+      ),
     );
   }
 
@@ -83,8 +74,8 @@ class BillingScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),
@@ -100,8 +91,8 @@ class BillingScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF0038A8).withAlpha(10),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(AppColors.cardRadius),
+                topRight: Radius.circular(AppColors.cardRadius),
               ),
             ),
             child: Row(
@@ -160,16 +151,14 @@ class BillingScreen extends StatelessWidget {
                       icon: const Icon(Icons.description_outlined, size: 16),
                       label: const Text("Invoice"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0038A8),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.buttonColor,
+                        foregroundColor: AppColors.buttonTextColor,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        shape: AppColors.buttonShape,
                       ),
                     ),
                   ],

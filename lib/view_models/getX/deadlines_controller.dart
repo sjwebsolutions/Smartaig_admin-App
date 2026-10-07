@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/models/deadlines_model.dart';
 import 'package:smart_aig_admins_app/services/deadlines_services.dart';
+import '../../utils/custom_snackbar.dart';
 
 class DeadlinesController extends GetxController {
   final DeadlinesService _deadlinesService = DeadlinesService();
@@ -25,26 +26,9 @@ class DeadlinesController extends GetxController {
         print("DEBUG: Deadlines loaded successfully. Count: ${deadlinesList.length}");
       } else {
         print("DEBUG: Failed to load deadlines. Success: ${response.success}");
-        Get.snackbar(
-          "Error",
-          "Failed to load deadlines",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(10),
-          borderRadius: 5,
-        );
       }
     } catch (e) {
       print("DEBUG: Error in fetchDeadlines: $e");
-      Get.snackbar(
-        "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(10),
-      );
     } finally {
       isLoading.value = false;
       print("DEBUG: fetchDeadlines finished");

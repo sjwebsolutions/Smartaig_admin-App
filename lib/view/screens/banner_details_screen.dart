@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class BannerDetailsScreen extends StatefulWidget {
   final String imageUrl;
@@ -49,11 +50,11 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
         print("✅ Share Sheet Opened");
       } else {
         print("❌ Failed to download image. Status: ${response.statusCode}");
-        Get.snackbar("Error", "Failed to download image for sharing");
+        CustomSnackBar.showError("Error", "Failed to download image for sharing");
       }
     } catch (e) {
       print("❌ Error during sharing: $e");
-      Get.snackbar("Error", "An error occurred while sharing: $e");
+      CustomSnackBar.showError("Error", "Unable to share banner. Please try again.");
     } finally {
       setState(() {
         _isSharing = false;
@@ -65,66 +66,89 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: Text(
             widget.title.toUpperCase(),
-            style: const TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
             overflow: TextOverflow.ellipsis,
           ),
         ),
         body: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Center(
-                child: InteractiveViewer(
-                  minScale: 0.5,
-                  maxScale: 4.0,
-                  child: Image.network(
-                    widget.imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF0038A8),
+            Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Center(
+                      child: InteractiveViewer(
+                        minScale: 0.5,
+                        maxScale: 4.0,
+                        child: Image.network(
+                          widget.imageUrl,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF0038A8),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.broken_image, color: Colors.grey, size: 64),
+                              SizedBox(height: 16),
+                              Text(
+                                "Failed to load image",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) => const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.broken_image, color: Colors.grey, size: 64),
-                        SizedBox(height: 16),
-                        Text(
-                          "Failed to load image",
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isSharing ? null : _shareImage,
+                      icon: _isSharing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.share_rounded),
+                      label: Text(_isSharing ? "Sharing..." : "SHARE PHOTO"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.buttonColor,
+                        foregroundColor: AppColors.buttonTextColor,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: AppColors.buttonShape,
+                        elevation: 5,
+                        shadowColor: AppColors.buttonColor.withOpacity(0.4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
             if (_isSharing)
               Container(
@@ -147,35 +171,6 @@ class _BannerDetailsScreenState extends State<BannerDetailsScreen> {
                 ),
               ),
           ],
-        ),
-        bottomNavigationBar: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: ElevatedButton.icon(
-              onPressed: _isSharing ? null : _shareImage,
-              icon: _isSharing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.share_rounded),
-              label: Text(_isSharing ? "Sharing..." : "SHARE PHOTO"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0038A8),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 5,
-                shadowColor: const Color(0xFF0038A8).withOpacity(0.4),
-              ),
-            ),
-          ),
         ),
       ),
     );

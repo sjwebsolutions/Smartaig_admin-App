@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/exam_result_controller.dart';
 import 'package:smart_aig_admins_app/models/exam_result_model.dart';
 import 'package:smart_aig_admins_app/view/screens/exam_result_classes_screen.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class ExamResultScreen extends StatelessWidget {
   const ExamResultScreen({super.key});
@@ -12,36 +13,19 @@ class ExamResultScreen extends StatelessWidget {
     final ExamResultController controller = Get.put(ExamResultController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "EXAM RESULTS",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -111,6 +95,7 @@ class ExamResultScreen extends StatelessWidget {
           );
         }),
       ),
+      ),
     );
   }
 
@@ -130,8 +115,8 @@ class ExamResultScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.cardColor,
+          borderRadius: AppColors.cardBorderRadius,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),

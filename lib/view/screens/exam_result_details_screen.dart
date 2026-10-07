@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/exam_result_class_details_controller.dart';
 import 'package:smart_aig_admins_app/models/exam_result_class_details_model.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class ExamResultDetailsScreen extends StatelessWidget {
   final int examId;
@@ -23,32 +24,20 @@ class ExamResultDetailsScreen extends StatelessWidget {
     );
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: Column(
             children: [
               Text(
                 className.toUpperCase(),
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  letterSpacing: 1.1,
-                ),
+                style: AppColors.appBarTitleStyle,
               ),
               const Text(
                 "SELECT SECTION/STREAM",
@@ -186,8 +175,8 @@ class ExamResultDetailsScreen extends StatelessWidget {
   Widget _buildItemCard(String title, IconData icon) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -203,7 +192,7 @@ class ExamResultDetailsScreen extends StatelessWidget {
           onTap: () {
             // Next Step: Handle selection for results report
           },
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: AppColors.cardBorderRadius,
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,

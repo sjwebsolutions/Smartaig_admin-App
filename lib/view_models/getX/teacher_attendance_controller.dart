@@ -7,6 +7,7 @@ import 'package:smart_aig_admins_app/models/teacher_attendance_report_model.dart
 import 'package:smart_aig_admins_app/services/teacher_attendance_service.dart';
 import 'package:smart_aig_admins_app/services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../utils/custom_snackbar.dart';
 
 class TeacherAttendanceController extends GetxController {
   final TeacherAttendanceService _attendanceService = TeacherAttendanceService();
@@ -110,12 +111,9 @@ class TeacherAttendanceController extends GetxController {
       final response = await _attendanceService.sendAttendanceReminder(teacherUid);
       
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           "Attendance reminder sent to $teacherName",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF10B981),
-          colorText: Colors.white,
         );
         
         // Also show a local notification for admin's confirmation
@@ -124,22 +122,16 @@ class TeacherAttendanceController extends GetxController {
           "Notification successfully delivered to $teacherName",
         );
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to send reminder",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFEF4444),
-          colorText: Colors.white,
         );
       }
     } catch (e) {
       print("TeacherAttendanceController Error: $e");
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
         "An unexpected error occurred",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFEF4444),
-        colorText: Colors.white,
       );
     }
   }

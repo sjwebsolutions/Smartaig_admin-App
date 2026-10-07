@@ -4,6 +4,7 @@ import '../../view_models/getX/announcement_controller.dart';
 import 'announcement_detail_screen.dart';
 import 'add_announcement_screen.dart';
 import 'banner_details_screen.dart';
+import '../../utils/app_colors.dart';
 
 class AnnouncementScreen extends StatelessWidget {
   const AnnouncementScreen({super.key});
@@ -13,36 +14,40 @@ class AnnouncementScreen extends StatelessWidget {
     final AnnouncementController controller = Get.put(AnnouncementController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "ANNOUNCEMENTS",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => Get.to(() => AddAnnouncementScreen()),
-          backgroundColor: const Color(0xFFF8F9FE),
-          child: const Icon(Icons.add, color: const Color(0xFF1E293B)),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: FloatingActionButton.extended(
+            onPressed: () => Get.to(() => AddAnnouncementScreen()),
+            backgroundColor: AppColors.buttonColor,
+            foregroundColor: AppColors.buttonTextColor,
+            shape: AppColors.buttonShape,
+            elevation: 4,
+            icon: const Icon(Icons.add, color: AppColors.buttonTextColor),
+            label: const Text(
+              "Add",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
@@ -70,9 +75,10 @@ class AnnouncementScreen extends StatelessWidget {
                     Get.to(() => AnnouncementDetailScreen(id: announcement.id));
                   },
                   child: Card(
+                    color: AppColors.cardColor,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: AppColors.cardBorderRadius,
                       side: const BorderSide(
                         color: Color(0xFF0038A8),
                         width: 1.2,
@@ -174,11 +180,24 @@ class AnnouncementScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  Text(
+                                    announcement.status == 1
+                                        ? "Active"
+                                        : "Inactive",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: announcement.status == 1
+                                          ? const Color(0xFF16A34A)
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
                                   Transform.scale(
                                     scale: 0.7,
                                     child: Switch(
                                       value: announcement.status == 1,
-                                      activeColor: Colors.green,
+                                      activeThumbColor: const Color(0xFF16A34A),
                                       onChanged: announcement.isEditable
                                           ? (val) {
                                               controller.toggleStatus(
@@ -188,295 +207,293 @@ class AnnouncementScreen extends StatelessWidget {
                                           : null, // Disable if not editable
                                     ),
                                   ),
-                                  if (announcement.isEditable &&
-                                      announcement.submitStatus.toLowerCase() !=
-                                          'locked' &&
-                                      announcement.submitStatus.toLowerCase() !=
-                                          'submitted')
-                                    IconButton(
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      icon: const Icon(
-                                        Icons.edit_note,
-                                        size: 24,
-                                        color: Colors.blue,
-                                      ),
-                                      onPressed: () async {
-                                        Get.dialog(
-                                          const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                          barrierDismissible: false,
-                                        );
-                                        await controller
-                                            .fetchAnnouncementDetails(
-                                              announcement.id,
-                                            );
-                                        Get.back(); // close loading dialog
-                                        if (controller
-                                                .announcementDetail
-                                                .value !=
-                                            null) {
-                                          Get.to(
-                                            () => AddAnnouncementScreen(
-                                              announcement: controller
-                                                  .announcementDetail
-                                                  .value,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  if (announcement.isEditable) ...[
-                                    // Check if it's currently locked
-                                    if (announcement.submitStatus
-                                                .toLowerCase() ==
-                                            'locked' ||
+                                ],
+                              ),
+                              if (announcement.isEditable ||
+                                  (announcement.imageUrl != null &&
+                                      announcement.imageUrl!.isNotEmpty)) ...[
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8),
+                                  child: Divider(height: 1, thickness: 0.5),
+                                ),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    // 1. Edit Button
+                                    if (announcement.isEditable &&
                                         announcement.submitStatus
-                                                .toLowerCase() ==
+                                                .toLowerCase() !=
+                                            'locked' &&
+                                        announcement.submitStatus
+                                                .toLowerCase() !=
                                             'submitted')
-                                      IconButton(
-                                        constraints: const BoxConstraints(),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        icon: const Icon(
-                                          Icons.lock,
-                                          size: 20,
-                                          color: Colors.orange,
-                                        ),
-                                        onPressed: () {
+                                      _buildCardActionButton(
+                                        icon: Icons.edit_outlined,
+                                        label: "Edit",
+                                        color: const Color(0xFF2563EB),
+                                        onTap: () async {
                                           Get.dialog(
-                                            AlertDialog(
-                                              title: const Text(
-                                                "Unlock Announcement",
-                                              ),
-                                              content: const Text(
-                                                "Are you sure you want to unlock this announcement?",
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Get.back(),
-                                                  child: const Text("Cancel"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Get.back();
-                                                    controller
-                                                        .unlockAnnouncement(
-                                                          announcement.id,
-                                                        );
-                                                  },
-                                                  child: const Text(
-                                                    "Unlock",
-                                                    style: TextStyle(
-                                                      color: Colors.green,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
+                                            const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
                                             ),
+                                            barrierDismissible: false,
                                           );
+                                          await controller
+                                              .fetchAnnouncementDetails(
+                                                announcement.id,
+                                              );
+                                          Get.back(); // close loading dialog
+                                          if (controller
+                                                  .announcementDetail
+                                                  .value !=
+                                              null) {
+                                            Get.to(
+                                              () => AddAnnouncementScreen(
+                                                announcement: controller
+                                                    .announcementDetail
+                                                    .value,
+                                              ),
+                                            );
+                                          }
                                         },
-                                      )
-                                    else
-                                      IconButton(
-                                        constraints: const BoxConstraints(),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        icon: const Icon(
-                                          Icons.lock_open,
-                                          size: 20,
-                                          color: Colors.green,
-                                        ),
-                                        onPressed: () {
-                                          Get.dialog(
-                                            AlertDialog(
-                                              title: const Text(
-                                                "Lock Announcement",
-                                              ),
-                                              content: const Text(
-                                                "Are you sure you want to lock this announcement?",
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Get.back(),
-                                                  child: const Text("Cancel"),
+                                      ),
+
+                                    // 2. Lock / Unlock Button
+                                    if (announcement.isEditable) ...[
+                                      if (announcement.submitStatus
+                                                  .toLowerCase() ==
+                                              'locked' ||
+                                          announcement.submitStatus
+                                                  .toLowerCase() ==
+                                              'submitted')
+                                        _buildCardActionButton(
+                                          icon: Icons.lock_open_rounded,
+                                          label: "Unlock",
+                                          color: const Color(0xFFD97706),
+                                          onTap: () {
+                                            Get.dialog(
+                                              AlertDialog(
+                                                title: const Text(
+                                                  "Unlock Announcement",
                                                 ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Get.back();
-                                                    controller.lockAnnouncement(
-                                                      announcement.id,
-                                                    );
-                                                  },
-                                                  child: const Text(
-                                                    "Lock",
-                                                    style: TextStyle(
-                                                      color: Colors.orange,
+                                                content: const Text(
+                                                  "Are you sure you want to unlock this announcement?",
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Get.back(),
+                                                    child: const Text("Cancel"),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Get.back();
+                                                      controller
+                                                          .unlockAnnouncement(
+                                                            announcement.id,
+                                                          );
+                                                    },
+                                                    child: const Text(
+                                                      "Unlock",
+                                                      style: TextStyle(
+                                                        color: Colors.green,
+                                                      ),
                                                     ),
                                                   ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        )
+                                      else
+                                        _buildCardActionButton(
+                                          icon: Icons.lock_outline_rounded,
+                                          label: "Lock",
+                                          color: const Color(0xFF0D9488),
+                                          onTap: () {
+                                            Get.dialog(
+                                              AlertDialog(
+                                                title: const Text(
+                                                  "Lock Announcement",
                                                 ),
-                                              ],
-                                            ),
-                                          );
+                                                content: const Text(
+                                                  "Are you sure you want to lock this announcement?",
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Get.back(),
+                                                    child: const Text("Cancel"),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Get.back();
+                                                      controller
+                                                          .lockAnnouncement(
+                                                            announcement.id,
+                                                          );
+                                                    },
+                                                    child: const Text(
+                                                      "Lock",
+                                                      style: TextStyle(
+                                                        color: Colors.orange,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                    ],
+
+                                    // 3. Download / View Image Button
+                                    if (announcement.imageUrl != null &&
+                                        announcement.imageUrl!.isNotEmpty)
+                                      _buildCardActionButton(
+                                        icon: Icons.download_rounded,
+                                        label: "Download",
+                                        color: const Color(0xFF7C3AED),
+                                        onTap: () => Get.to(
+                                          () => BannerDetailsScreen(
+                                            imageUrl: announcement.imageUrl!,
+                                            title: announcement.title,
+                                          ),
+                                        ),
+                                      ),
+
+                                    // 4. Publish / Unpublish Button
+                                    if (announcement.isEditable)
+                                      _buildCardActionButton(
+                                        icon: announcement.publishStatus
+                                                .toLowerCase()
+                                                .contains('publish')
+                                            ? Icons.unpublished_outlined
+                                            : Icons.publish_rounded,
+                                        label: announcement.publishStatus
+                                                .toLowerCase()
+                                                .contains('publish')
+                                            ? "Unpublish"
+                                            : "Publish",
+                                        color: announcement.publishStatus
+                                                .toLowerCase()
+                                                .contains('publish')
+                                            ? const Color(0xFFDC2626)
+                                            : const Color(0xFF0038A8),
+                                        onTap: () {
+                                          if (announcement.publishStatus
+                                              .toLowerCase()
+                                              .contains('publish')) {
+                                            Get.dialog(
+                                              AlertDialog(
+                                                title: const Text(
+                                                  "Unpublish Announcement",
+                                                ),
+                                                content: const Text(
+                                                  "Are you sure you want to unpublish this announcement?",
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Get.back(),
+                                                    child: const Text("Cancel"),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Get.back();
+                                                      controller
+                                                          .unpublishAnnouncement(
+                                                            announcement.id,
+                                                          );
+                                                    },
+                                                    child: const Text(
+                                                      "Unpublish",
+                                                      style: TextStyle(
+                                                        color: Colors.redAccent,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          } else {
+                                            Get.bottomSheet(
+                                              Container(
+                                                padding: const EdgeInsets.all(20),
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.vertical(
+                                                        top: Radius.circular(20),
+                                                      ),
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Text(
+                                                      "PUBLISH TO",
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Color(0xFF1E293B),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 20),
+                                                    _buildPublishOption(
+                                                      icon: Icons.person_outline,
+                                                      title: "Parents Only",
+                                                      color: Colors.blue,
+                                                      onTap: () {
+                                                        Get.back();
+                                                        controller
+                                                            .publishAnnouncement(
+                                                              announcement.id,
+                                                              sendToParents: 1,
+                                                              sendToTeachers: 0,
+                                                            );
+                                                      },
+                                                    ),
+                                                    _buildPublishOption(
+                                                      icon: Icons.school_outlined,
+                                                      title: "Teachers Only",
+                                                      color: Colors.orange,
+                                                      onTap: () {
+                                                        Get.back();
+                                                        controller
+                                                            .publishAnnouncement(
+                                                              announcement.id,
+                                                              sendToParents: 0,
+                                                              sendToTeachers: 1,
+                                                            );
+                                                      },
+                                                    ),
+                                                    _buildPublishOption(
+                                                      icon: Icons.group_outlined,
+                                                      title:
+                                                          "Both Parents & Teachers",
+                                                      color: Colors.indigo,
+                                                      onTap: () {
+                                                        Get.back();
+                                                        controller
+                                                            .publishAnnouncement(
+                                                              announcement.id,
+                                                              sendToParents: 1,
+                                                              sendToTeachers: 1,
+                                                            );
+                                                      },
+                                                    ),
+                                                    const SizedBox(height: 10),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         },
                                       ),
                                   ],
-                                  if (announcement.imageUrl != null &&
-                                      announcement.imageUrl!.isNotEmpty)
-                                    IconButton(
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      icon: const Icon(
-                                        Icons.download,
-                                        size: 20,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () => Get.to(
-                                        () => BannerDetailsScreen(
-                                          imageUrl: announcement.imageUrl!,
-                                          title: announcement.title,
-                                        ),
-                                      ),
-                                    ),
-                                  if (announcement.isEditable)
-                                    IconButton(
-                                      constraints: const BoxConstraints(),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      icon: Icon(
-                                        announcement.publishStatus
-                                                .toLowerCase()
-                                                .contains('publish')
-                                            ? Icons.unpublished
-                                            : Icons.publish,
-                                        size: 20,
-                                        color:
-                                            announcement.publishStatus
-                                                .toLowerCase()
-                                                .contains('publish')
-                                            ? Colors.redAccent
-                                            : Colors.indigo,
-                                      ),
-                                      onPressed: () {
-                                        if (announcement.publishStatus
-                                            .toLowerCase()
-                                            .contains('publish')) {
-                                          Get.dialog(
-                                            AlertDialog(
-                                              title: const Text(
-                                                "Unpublish Announcement",
-                                              ),
-                                              content: const Text(
-                                                "Are you sure you want to unpublish this announcement?",
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Get.back(),
-                                                  child: const Text("Cancel"),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Get.back();
-                                                    controller
-                                                        .unpublishAnnouncement(
-                                                          announcement.id,
-                                                        );
-                                                  },
-                                                  child: const Text(
-                                                    "Unpublish",
-                                                    style: TextStyle(
-                                                      color: Colors.redAccent,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        } else {
-                                          Get.bottomSheet(
-                                            Container(
-                                              padding: const EdgeInsets.all(20),
-                                              decoration: const BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.vertical(
-                                                      top: Radius.circular(20),
-                                                    ),
-                                              ),
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Text(
-                                                    "PUBLISH TO",
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color(0xFF1E293B),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 20),
-                                                  _buildPublishOption(
-                                                    icon: Icons.person_outline,
-                                                    title: "Parents Only",
-                                                    color: Colors.blue,
-                                                    onTap: () {
-                                                      Get.back();
-                                                      controller
-                                                          .publishAnnouncement(
-                                                            announcement.id,
-                                                            sendToParents: 1,
-                                                            sendToTeachers: 0,
-                                                          );
-                                                    },
-                                                  ),
-                                                  _buildPublishOption(
-                                                    icon: Icons.school_outlined,
-                                                    title: "Teachers Only",
-                                                    color: Colors.orange,
-                                                    onTap: () {
-                                                      Get.back();
-                                                      controller
-                                                          .publishAnnouncement(
-                                                            announcement.id,
-                                                            sendToParents: 0,
-                                                            sendToTeachers: 1,
-                                                          );
-                                                    },
-                                                  ),
-                                                  _buildPublishOption(
-                                                    icon: Icons.group_outlined,
-                                                    title:
-                                                        "Both Parents & Teachers",
-                                                    color: Colors.indigo,
-                                                    onTap: () {
-                                                      Get.back();
-                                                      controller
-                                                          .publishAnnouncement(
-                                                            announcement.id,
-                                                            sendToParents: 1,
-                                                            sendToTeachers: 1,
-                                                          );
-                                                    },
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -488,6 +505,7 @@ class AnnouncementScreen extends StatelessWidget {
             ),
           );
         }),
+      ),
       ),
     );
   }
@@ -503,6 +521,47 @@ class AnnouncementScreen extends StatelessWidget {
     }
   }
 
+  Widget _buildCardActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: color.withValues(alpha: 0.28),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPublishOption({
     required IconData icon,
     required String title,
@@ -513,7 +572,7 @@ class AnnouncementScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: color),

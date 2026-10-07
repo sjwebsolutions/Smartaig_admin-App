@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view_models/getX/auth_controller.dart';
 
 class ManualOtpLoginScreen extends StatefulWidget {
@@ -17,29 +18,29 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F7FF),
-      appBar: AppBar(
+    return Container(
+      decoration: AppColors.screenDecoration,
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
+        appBar: AppBar(
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const CustomBackButton(),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Manual OTP Login",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Manual OTP Login",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1E293B),
+                ),
               ),
-            ),
             const SizedBox(height: 8),
             const Text(
               "Contact Your School Administration To Get a Temporary OTP",
@@ -177,12 +178,10 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
                           _otpController.text.trim(),
                         ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1E2E5D),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.buttonColor,
+                    foregroundColor: AppColors.buttonTextColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: AppColors.buttonShape,
                   ),
                   child: _authController.isLoading.value
                       ? const SizedBox(
@@ -231,6 +230,7 @@ class _ManualOtpLoginScreenState extends State<ManualOtpLoginScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

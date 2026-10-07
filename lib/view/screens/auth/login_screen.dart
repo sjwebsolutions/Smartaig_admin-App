@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view_models/getX/auth_controller.dart';
 import 'package:smart_aig_admins_app/view/screens/auth/manual_otp_login_screen.dart';
 
@@ -16,9 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F7FF),
-      body: SafeArea(
+    return Container(
+      decoration: AppColors.screenDecoration,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
@@ -118,8 +121,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     vertical: 24,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    color: AppColors.cardColor,
+                    borderRadius: AppColors.cardBorderRadius,
                     border: Border.all(
                       color: const Color(0xFFE2E8F0),
                       width: 1,
@@ -239,12 +242,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _phoneController.text.trim(),
                                   ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E2E5D),
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.buttonColor,
+                              foregroundColor: AppColors.buttonTextColor,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              shape: AppColors.buttonShape,
                               elevation: 2,
                             ),
                             child: _authController.isLoading.value
@@ -317,7 +318,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -325,7 +326,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
+      ) );
   }
 
   Widget _buildBadge({

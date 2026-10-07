@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:smart_aig_admins_app/models/billing_model.dart';
 import 'package:smart_aig_admins_app/services/billing_service.dart';
 import 'package:smart_aig_admins_app/view/screens/invoice_view_screen.dart';
+import '../../utils/custom_snackbar.dart';
 
 class BillingController extends GetxController {
   final BillingService _apiService = BillingService();
@@ -61,11 +62,12 @@ class BillingController extends GetxController {
 
       } else {
         if (Get.isDialogOpen ?? false) Get.back();
-        Get.snackbar("Error", "Failed to download invoice (Status: ${response.statusCode})");
+        CustomSnackBar.showError("Error", "Failed to download invoice (Status: ${response.statusCode})");
       }
     } catch (e) {
       if (Get.isDialogOpen ?? false) Get.back();
-      Get.snackbar("Error", "An error occurred: $e");
+      debugPrint("Error viewing invoice: $e");
+      CustomSnackBar.showError("Error", "Unable to download invoice. Please check your connection and try again.");
     } finally {
       isInvoiceLoading.value = false;
     }

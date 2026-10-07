@@ -7,7 +7,7 @@ class MarksUploadStatusController extends GetxController {
   final int classId;
   final int? sectionId;
   final int? streamId;
-  
+
   final MarksEntryService _marksEntryService = MarksEntryService();
 
   MarksUploadStatusController({
@@ -19,7 +19,12 @@ class MarksUploadStatusController extends GetxController {
 
   var isLoading = true.obs;
   var statusList = <MarksUploadStatusItem>[].obs;
+  var filteredList = <MarksUploadStatusItem>[].obs;
   var success = false.obs;
+
+  // Filter & Search states
+  var selectedStatusFilter = 'All'.obs; // 'All', 'Completed', 'Pending'
+  var searchQuery = ''.obs;
 
   @override
   void onInit() {
@@ -39,11 +44,77 @@ class MarksUploadStatusController extends GetxController {
       success.value = response.success;
       if (response.success) {
         statusList.assignAll(response.data);
+        applyFilters();
+      } else {
+        statusList.clear();
+        filteredList.clear();
       }
     } catch (e) {
       print("MarksUploadStatusController Error: $e");
+      success.value = false;
+      statusList.clear();
+      filteredList.clear();
     } finally {
       isLoading.value = false;
     }
+  }
+
+  void applyFilters() {
+    List<MarksUploadStatusItem> results = List.from(statusList);
+
+    // Status filter
+    if (selectedStatusFilter.value != 'All') {
+      results = results.where((item) {
+        return item.status.toLowerCase() ==
+            selectedStatusFilter.value.toLowerCase();
+      }).toList();
+    }
+
+    // Search query (subject or teacher)
+    if (searchQuery.value.trim().isNotEmpty) {
+      final query = searchQuery.value.trim().toLowerCase();
+      results = results.where((item) {
+        return item.subject.toLowerCase().contains(query) ||
+            item.teacher.toLowerCase().contains(query) ||
+            item.section.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    filteredList.assignAll(results);
+  }
+
+  void setStatusFilter(String filter) {
+    selectedStatusFilter.value = filter;
+    applyFilters();
+  }
+
+  void setSearchQuery(String query) {
+    searchQuery.value = query;
+    applyFilters();
+  }
+
+  // Summary Metrics
+  int get totalSubjects => statusList.length;
+
+  int get totalUploadedCount =>
+      statusList.fold(0, (sum, item) => sum + item.uploaded);
+
+  int get totalPendingCount =>
+      statusList.fold(0, (sum, item) => sum + item.pending);
+
+  int get totalStudentsCount =>
+      statusList.fold(0, (sum, item) => sum + item.total);
+
+  int get completedSubjectsCount => statusList
+      .where((item) => item.status.toLowerCase() == 'completed')
+      .length;
+
+  int get pendingSubjectsCount => statusList
+      .where((item) => item.status.toLowerCase() == 'pending')
+      .length;
+
+  double get completionRatio {
+    if (totalStudentsCount == 0) return 0.0;
+    return (totalUploadedCount / totalStudentsCount).clamp(0.0, 1.0);
   }
 }

@@ -18,6 +18,20 @@ class AnnouncementService {
     }
   }
 
+  String _formatError(dynamic e) {
+    final str = e.toString().toLowerCase();
+    if (str.contains('socketexception') ||
+        str.contains('clientexception') ||
+        str.contains('failed host lookup') ||
+        str.contains('no address associated') ||
+        str.contains('connection refused') ||
+        str.contains('timeoutexception') ||
+        str.contains('network is unreachable')) {
+      return "Unable to connect. Please check your internet connection and try again.";
+    }
+    return "Something went wrong. Please try again.";
+  }
+
   Future<CreateAnnouncementResponse> storeAnnouncement({
     required String title,
     required String description,
@@ -96,7 +110,7 @@ class AnnouncementService {
       _log("Error in storeAnnouncement: $e");
       return CreateAnnouncementResponse(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -180,7 +194,7 @@ class AnnouncementService {
       _log("Error in updateAnnouncement: $e");
       return CreateAnnouncementResponse(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -221,7 +235,7 @@ class AnnouncementService {
       _log("Error in getTargetingData: $e");
       return TargetingDataResponse(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -262,7 +276,7 @@ class AnnouncementService {
       _log("Error in getAnnouncementTypes: $e");
       return AnnouncementTypeResponse(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -303,7 +317,7 @@ class AnnouncementService {
       _log("Error in getAnnouncements: $e");
       return AnnouncementResponseModel(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -344,7 +358,7 @@ class AnnouncementService {
       _log("Error in getAnnouncementDetails: $id - $e");
       return AnnouncementDetailResponse(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -376,7 +390,7 @@ class AnnouncementService {
       _log("Error in toggleAnnouncementStatus: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }
@@ -408,7 +422,7 @@ class AnnouncementService {
       _log("Error in lockAnnouncement: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }
@@ -440,7 +454,7 @@ class AnnouncementService {
       _log("Error in unlockAnnouncement: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }
@@ -476,7 +490,7 @@ class AnnouncementService {
       _log("Error in publishAnnouncement: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }
@@ -508,7 +522,7 @@ class AnnouncementService {
       _log("Error in unpublishAnnouncement: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }

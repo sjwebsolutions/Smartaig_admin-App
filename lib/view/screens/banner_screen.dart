@@ -4,6 +4,7 @@ import 'package:smart_aig_admins_app/view/screens/banner_details_screen.dart';
 import '../../view_models/getX/banner_controller.dart';
 import '../../models/banner_model.dart';
 import 'publish_banner_screen.dart';
+import '../../utils/app_colors.dart';
 
 class BannerScreen extends StatelessWidget {
   const BannerScreen({super.key});
@@ -14,31 +15,20 @@ class BannerScreen extends StatelessWidget {
     final bool isPushed = ModalRoute.of(context)?.canPop ?? false;
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: isPushed
             ? AppBar(
-                toolbarHeight: 80,
-                backgroundColor: const Color(0xFFF8F9FE),
+                toolbarHeight: AppColors.appBarToolbarHeight,
+                backgroundColor: Colors.transparent,
                 elevation: 0,
-                centerTitle: true,
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: const Color(0xFF1E293B),
-                    size: 20,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                centerTitle: AppColors.appBarCenterTitle,
+                leading: const CustomBackButton(),
                 title: const Text(
                   "BANNERS",
-                  style: TextStyle(
-                    color: const Color(0xFF1E293B),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    letterSpacing: 1.1,
-                  ),
+                  style: AppColors.appBarTitleStyle,
                 ),
               )
             : null,
@@ -64,9 +54,10 @@ class BannerScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final banner = controller.banners[index];
                 return Card(
+                  color: AppColors.cardColor,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: AppColors.cardBorderRadius,
                     side: const BorderSide(
                       color: Color(0xFF0038A8),
                       width: 1.2,
@@ -255,9 +246,7 @@ class BannerScreen extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 12,
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                      shape: AppColors.buttonShape,
                                     ),
                                   ),
                                 ),
@@ -273,15 +262,13 @@ class BannerScreen extends StatelessWidget {
                                     ),
                                     label: const Text("Release"),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF1E2E5D),
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: AppColors.buttonColor,
+                                      foregroundColor: AppColors.buttonTextColor,
                                       padding: const EdgeInsets.symmetric(
                                         vertical: 12,
                                       ),
                                       elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
+                                      shape: AppColors.buttonShape,
                                     ),
                                   ),
                                 ),
@@ -297,6 +284,7 @@ class BannerScreen extends StatelessWidget {
             ),
           );
         }),
+        ),
       ),
     );
   }

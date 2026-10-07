@@ -55,4 +55,38 @@ class SyllabusService {
       );
     }
   }
+
+  Future<SyllabusTermResponseModel> getSyllabusTerms() async {
+    final uri = Uri.parse('$baseUrl/admin-teacher/syllabus/terms');
+    _log("GET Request to: $uri");
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    try {
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      _log("Syllabus Terms Response Code: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        return SyllabusTermResponseModel.fromJson(jsonDecode(response.body));
+      } else {
+        _log("Syllabus Terms Error: ${response.body}");
+        return SyllabusTermResponseModel(
+          success: false,
+        );
+      }
+    } catch (e) {
+      _log("Error in getSyllabusTerms: $e");
+      return SyllabusTermResponseModel(
+        success: false,
+      );
+    }
+  }
 }

@@ -59,6 +59,20 @@ class BannerService {
     }
   }
 
+  String _formatError(dynamic e) {
+    final str = e.toString().toLowerCase();
+    if (str.contains('socketexception') ||
+        str.contains('clientexception') ||
+        str.contains('failed host lookup') ||
+        str.contains('no address associated') ||
+        str.contains('connection refused') ||
+        str.contains('timeoutexception') ||
+        str.contains('network is unreachable')) {
+      return "Unable to connect. Please check your internet connection and try again.";
+    }
+    return "Something went wrong. Please try again.";
+  }
+
   Future<Map<String, dynamic>> publishBanner({
     required int id,
     required int audienceParents,
@@ -98,7 +112,7 @@ class BannerService {
       print("❌ [Banner Publish Error]: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }
@@ -123,7 +137,7 @@ class BannerService {
       print("❌ [Banner Toggle Status Error]: $e");
       return {
         'success': false,
-        'message': "Error occurred: $e",
+        'message': _formatError(e),
       };
     }
   }

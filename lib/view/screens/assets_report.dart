@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/finance_controller.dart';
 import 'package:smart_aig_admins_app/models/finance_statistics_model.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class AssetsReport extends StatelessWidget {
   const AssetsReport({super.key});
@@ -11,30 +12,18 @@ class AssetsReport extends StatelessWidget {
     final FinanceController controller = Get.put(FinanceController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "FINANCE REPORT",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -155,8 +144,8 @@ class AssetsReport extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -173,8 +162,8 @@ class AssetsReport extends StatelessWidget {
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(15),
-                topRight: Radius.circular(15),
+                topLeft: Radius.circular(AppColors.cardRadius),
+                topRight: Radius.circular(AppColors.cardRadius),
               ),
             ),
             child: Row(

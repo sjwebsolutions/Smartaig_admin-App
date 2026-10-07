@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/meeting_controller.dart';
 import 'package:smart_aig_admins_app/models/meeting_model.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class MeetingScreen extends StatelessWidget {
   const MeetingScreen({super.key});
@@ -13,31 +14,20 @@ class MeetingScreen extends StatelessWidget {
     final bool isPushed = ModalRoute.of(context)?.canPop ?? false;
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
         appBar: isPushed
             ? AppBar(
-                toolbarHeight: 80,
-                backgroundColor: const Color(0xFFF8F9FE),
+                toolbarHeight: AppColors.appBarToolbarHeight,
+                backgroundColor: Colors.transparent,
                 elevation: 0,
-                centerTitle: true,
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: const Color(0xFF1E293B),
-                    size: 20,
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                ),
+                centerTitle: AppColors.appBarCenterTitle,
+                leading: const CustomBackButton(),
                 title: const Text(
                   "MEETINGS",
-                  style: TextStyle(
-                    color: const Color(0xFF1E293B),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    letterSpacing: 1.1,
-                  ),
+                  style: AppColors.appBarTitleStyle,
                 ),
               )
             : null,
@@ -78,6 +68,7 @@ class MeetingScreen extends StatelessWidget {
             ),
           );
         }),
+        ),
       ),
     );
   }
@@ -103,166 +94,150 @@ class MeetingScreen extends StatelessWidget {
       statusColor = const Color(0xFF0038A8);
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        border: Border.all(
-          color: isEnded ? Colors.transparent : statusColor.withAlpha(30),
-          width: 1,
+    return Card(
+      color: AppColors.cardColor,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppColors.cardBorderRadius,
+        side: const BorderSide(
+          color:Colors.white,
+          width: 1.2,
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Status Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: statusColor.withAlpha(isEnded ? 10 : 20),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
-            child: Row(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status and Date Header
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    if (displayStatus == "LIVE")
-                      Container(
-                        width: 8,
-                        height: 8,
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withAlpha(25),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (displayStatus == "LIVE")
+                        Container(
+                          width: 8,
+                          height: 8,
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      Text(
+                        displayStatus,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
                         ),
                       ),
-                    Text(
-                      displayStatus,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: statusColor,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Text(
                   meeting.formattedDate,
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 12),
+            Text(
+              meeting.subject,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 10),
+            _buildInfoTile(
+              Icons.access_time_rounded,
+              "${meeting.fromTime} - ${meeting.toTime}",
+            ),
+            if (meeting.remarks != null &&
+                meeting.remarks!.isNotEmpty &&
+                meeting.remarks!.trim() != meeting.subject.trim()) ...[
+              const SizedBox(height: 10),
+              Text(
+                meeting.remarks!,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Text(
-                  meeting.subject,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                if (!isEnded && meeting.liveLink != null)
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _launchURL(meeting.liveLink!),
+                      icon: const Icon(Icons.videocam_rounded, size: 18),
+                      label: const Text("Join Meeting"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.buttonColor,
+                        foregroundColor: AppColors.buttonTextColor,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: AppColors.buttonShape,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                _buildInfoTile(
-                  Icons.access_time_rounded,
-                  "${meeting.fromTime} - ${meeting.toTime}",
-                ),
-                if (meeting.remarks != null &&
-                    meeting.remarks!.isNotEmpty &&
-                    meeting.remarks!.trim() != meeting.subject.trim()) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    meeting.remarks!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                      fontStyle: FontStyle.italic,
+                if (isEnded)
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: AppColors.buttonBorderRadius,
+                      ),
+                      child: const Text(
+                        "Meeting Over",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                if (meeting.recordingLink != null) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _launchURL(meeting.recordingLink!),
+                      icon: const Icon(Icons.play_circle_outline, size: 18),
+                      label: const Text("Recording"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.buttonColor,
+                        side: const BorderSide(color: AppColors.buttonColor),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: AppColors.buttonShape,
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    if (!isEnded && meeting.liveLink != null)
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _launchURL(meeting.liveLink!),
-                          icon: const Icon(Icons.videocam_rounded, size: 18),
-                          label: const Text("Join Meeting"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0038A8),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (isEnded)
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            "Meeting Over",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (meeting.recordingLink != null) ...[
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _launchURL(meeting.recordingLink!),
-                          icon: const Icon(Icons.play_circle_outline, size: 18),
-                          label: const Text("Recording"),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF0038A8),
-                            side: const BorderSide(color: Color(0xFF0038A8)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,7 +263,7 @@ class MeetingScreen extends StatelessWidget {
   Future<void> _launchURL(String urlString) async {
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      Get.snackbar("Error", "Could not launch meeting link");
+      CustomSnackBar.showError("Error", "Could not launch meeting link");
     }
   }
 }

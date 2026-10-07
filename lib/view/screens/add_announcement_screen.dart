@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../view_models/getX/announcement_controller.dart';
 import '../../models/announcement_detail_model.dart';
 import 'dart:io';
+import '../../utils/app_colors.dart';
 
 class AddAnnouncementScreen extends StatefulWidget {
   final AnnouncementDetail? announcement;
@@ -114,32 +115,20 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: Text(
             widget.announcement == null
                 ? "CREATE ANNOUNCEMENT"
                 : "EDIT ANNOUNCEMENT",
-            style: const TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: SingleChildScrollView(
@@ -232,10 +221,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                     () => ElevatedButton(
                       onPressed: controller.isSubmitting.value ? null : _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0038A8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        backgroundColor: AppColors.buttonColor,
+                        foregroundColor: AppColors.buttonTextColor,
+                        shape: AppColors.buttonShape,
                         elevation: 2,
                       ),
                       child: controller.isSubmitting.value
@@ -352,8 +340,8 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.cardColor,
+              borderRadius: AppColors.cardBorderRadius,
               border: Border.all(color: Colors.grey.shade300),
             ),
             child: Row(
@@ -401,8 +389,8 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         border: Border.all(color: const Color(0xFF0038A8), width: 1.2),
       ),
       child: Column(
@@ -479,13 +467,13 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
     final bool hasImage = _imageFile != null || _existingImageUrl != null;
     return InkWell(
       onTap: _showImageSourceDialog,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: AppColors.cardBorderRadius,
       child: Container(
         width: double.infinity,
         height: screenHeight * 0.2, // Responsive height (20% of screen)
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          color: AppColors.cardColor,
+          borderRadius: AppColors.cardBorderRadius,
           border: Border.all(
             color: hasImage ? const Color(0xFF0038A8) : Colors.grey.shade300,
             width: hasImage ? 1.5 : 1,
@@ -504,7 +492,7 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: AppColors.cardBorderRadius,
                     child: _imageFile != null
                         ? Image.file(_imageFile!, fit: BoxFit.cover)
                         : Image.network(_existingImageUrl!, fit: BoxFit.cover),
@@ -562,11 +550,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
   void _submit() {
     if (_formKey.currentState!.validate()) {
       if (_selectedTypeId == null) {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           "Please select an announcement type",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
         return;
       }
@@ -576,11 +562,9 @@ class _AddAnnouncementScreenState extends State<AddAnnouncementScreen> {
         if (_selectedClassId == null ||
             _selectedStreamId == null ||
             _selectedSectionIds.isEmpty) {
-          Get.snackbar(
+          CustomSnackBar.showError(
             "Error",
             "Please complete targeting selection",
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
           );
           return;
         }

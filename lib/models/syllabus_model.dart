@@ -90,3 +90,39 @@ class Attachment {
     );
   }
 }
+
+class SyllabusTermResponseModel {
+  final bool success;
+  final List<SyllabusTerm>? data;
+
+  SyllabusTermResponseModel({
+    required this.success,
+    this.data,
+  });
+
+  factory SyllabusTermResponseModel.fromJson(Map<String, dynamic> json) {
+    return SyllabusTermResponseModel(
+      success: json['success'] ?? false,
+      data: json['data'] != null
+          ? (json['data'] as List).map((i) => SyllabusTerm.fromJson(i)).toList()
+          : null,
+    );
+  }
+}
+
+class SyllabusTerm {
+  final int id;
+  final String name;
+
+  SyllabusTerm({
+    required this.id,
+    required this.name,
+  });
+
+  factory SyllabusTerm.fromJson(Map<String, dynamic> json) {
+    return SyllabusTerm(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+    );
+  }
+}

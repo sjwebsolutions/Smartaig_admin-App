@@ -1,41 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final Widget? leading;
   final List<Widget>? actions;
   final bool centerTitle;
+  final bool showBackButton;
 
   const CustomAppBar({
     super.key,
     required this.title,
     this.leading,
     this.actions,
-    this.centerTitle = false,
+    this.centerTitle = AppColors.appBarCenterTitle,
+    this.showBackButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      automaticallyImplyLeading: leading != null,
-      toolbarHeight: 80,
-      backgroundColor: const Color(0xFFF8F9FE),
+      automaticallyImplyLeading: false,
+      toolbarHeight: AppColors.appBarToolbarHeight,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: centerTitle,
-      leading: leading,
+      leading: leading ?? (showBackButton ? const CustomBackButton() : null),
       title: Text(
         title,
-        style: const TextStyle(
-          color: const Color(0xFF1E293B),
-          fontWeight: FontWeight.bold,
-          fontSize: 20,
-          letterSpacing: 0.5,
-        ),
+        style: AppColors.appBarTitleStyle,
       ),
       actions: actions,
-      );
-    }
+    );
+  }
 
   @override
-  Size get preferredSize => const Size.fromHeight(80);
+  Size get preferredSize => const Size.fromHeight(AppColors.appBarToolbarHeight);
 }

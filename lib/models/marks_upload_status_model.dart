@@ -18,24 +18,51 @@ class MarksUploadStatusModel {
 }
 
 class MarksUploadStatusItem {
-  final String subjectName;
+  final String teacher;
+  final String subject;
+  final String section;
+  final int total;
+  final int uploaded;
+  final int pending;
   final String status;
-  final String teacherName;
-  final String date;
+  final bool isMisc;
 
   MarksUploadStatusItem({
-    required this.subjectName,
+    required this.teacher,
+    required this.subject,
+    required this.section,
+    required this.total,
+    required this.uploaded,
+    required this.pending,
     required this.status,
-    required this.teacherName,
-    required this.date,
+    required this.isMisc,
   });
+
+  // Compatibility getters
+  String get subjectName => subject;
+  String get teacherName => teacher;
+  String get date => '';
 
   factory MarksUploadStatusItem.fromJson(Map<String, dynamic> json) {
     return MarksUploadStatusItem(
-      subjectName: json['subject_name'] ?? 'N/A',
-      status: json['status'] ?? 'Pending',
-      teacherName: json['teacher_name'] ?? 'N/A',
-      date: json['date'] ?? '',
+      teacher: json['teacher']?.toString() ?? json['teacher_name']?.toString() ?? 'N/A',
+      subject: json['subject']?.toString() ?? json['subject_name']?.toString() ?? 'N/A',
+      section: json['section']?.toString() ?? '',
+      total: _parseInt(json['total']),
+      uploaded: _parseInt(json['uploaded']),
+      pending: _parseInt(json['pending']),
+      status: json['status']?.toString() ?? 'Pending',
+      isMisc: json['is_misc'] is bool
+          ? json['is_misc']
+          : (json['is_misc']?.toString().toLowerCase() == 'true' || json['is_misc']?.toString() == '1'),
     );
+  }
+
+  static int _parseInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
   }
 }

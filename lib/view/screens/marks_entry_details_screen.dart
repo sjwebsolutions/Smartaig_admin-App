@@ -1,54 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/marks_entry_class_details_controller.dart';
-import 'package:smart_aig_admins_app/models/marks_entry_class_details_model.dart';
+import 'package:smart_aig_admins_app/view/screens/marks_upload_status_screen.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class MarksEntryDetailsScreen extends StatelessWidget {
   final int examId;
   final int classId;
   final String className;
+  final String? examTitle;
 
   const MarksEntryDetailsScreen({
     super.key,
     required this.examId,
     required this.classId,
     required this.className,
+    this.examTitle,
   });
 
   @override
   Widget build(BuildContext context) {
     final MarksEntryClassDetailsController controller = Get.put(
       MarksEntryClassDetailsController(examId: examId, classId: classId),
-      tag: "${examId}_$classId",
+      tag: "marks_entry_details_${examId}_$classId",
     );
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: Column(
             children: [
               Text(
                 className.toUpperCase(),
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  letterSpacing: 1.1,
-                ),
+                style: AppColors.appBarTitleStyle,
               ),
               const Text(
                 "SELECT SECTION/STREAM",
@@ -63,7 +54,11 @@ class MarksEntryDetailsScreen extends StatelessWidget {
         ),
         body: Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0038A8)),
+              ),
+            );
           }
 
           if (!controller.success.value ||
@@ -71,20 +66,36 @@ class MarksEntryDetailsScreen extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () => controller.fetchClassDetails(),
               child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                  const Center(
+                  Center(
                     child: Column(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.error_outline_rounded,
                           size: 60,
                           color: Colors.grey,
                         ),
-                        SizedBox(height: 16),
-                        Text(
+                        const SizedBox(height: 16),
+                        const Text(
                           "Failed to load class details",
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                          style: TextStyle(
+                            color: Color(0xFF1E293B),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => controller.fetchClassDetails(),
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text("Retry"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.buttonColor,
+                            foregroundColor: AppColors.buttonTextColor,
+                            shape: AppColors.buttonShape,
+                          ),
                         ),
                       ],
                     ),
@@ -128,9 +139,24 @@ class MarksEntryDetailsScreen extends StatelessWidget {
                           ),
                       itemCount: data.streams.length,
                       itemBuilder: (context, index) {
+                        final stream = data.streams[index];
                         return _buildItemCard(
-                          data.streams[index].name,
+                          stream.name,
                           Icons.account_tree_rounded,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MarksUploadStatusScreen(
+                                  marksEntryId: examId,
+                                  classId: classId,
+                                  className: className,
+                                  streamId: stream.id,
+                                  streamName: stream.name,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -160,9 +186,24 @@ class MarksEntryDetailsScreen extends StatelessWidget {
                           ),
                       itemCount: data.sections.length,
                       itemBuilder: (context, index) {
+                        final section = data.sections[index];
                         return _buildItemCard(
-                          data.sections[index].name,
+                          section.name,
                           Icons.grid_view_rounded,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MarksUploadStatusScreen(
+                                  marksEntryId: examId,
+                                  classId: classId,
+                                  className: className,
+                                  sectionId: section.id,
+                                  sectionName: section.name,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
@@ -183,14 +224,14 @@ class MarksEntryDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildItemCard(String title, IconData icon) {
+  Widget _buildItemCard(String title, IconData icon, {VoidCallback? onTap}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -200,10 +241,8 @@ class MarksEntryDetailsScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            // Next Step: Handle selection
-          },
-          borderRadius: BorderRadius.circular(15),
+          onTap: onTap,
+          borderRadius: AppColors.cardBorderRadius,
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -226,3 +265,5 @@ class MarksEntryDetailsScreen extends StatelessWidget {
     );
   }
 }
+
+

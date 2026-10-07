@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/models/meeting_model.dart';
 import 'package:smart_aig_admins_app/services/meeting_service.dart';
+import '../../utils/custom_snackbar.dart';
 
 class MeetingController extends GetxController {
   final MeetingService _meetingService = MeetingService();
@@ -48,22 +49,10 @@ class MeetingController extends GetxController {
       if (response.success) {
         meetings.assignAll(response.data);
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to fetch meetings",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        debugPrint("Failed to fetch meetings");
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      debugPrint("Error in fetchMeetings: $e");
     } finally {
       isLoading.value = false;
     }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../models/banner_model.dart';
 import '../../view_models/getX/banner_controller.dart';
+import '../../utils/app_colors.dart';
 
 class PublishBannerScreen extends StatefulWidget {
   final BannerModel banner;
@@ -54,21 +55,17 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (!_audienceParents && !_audienceTeachers) {
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
         "Please select at least one audience",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
       return;
     }
 
     if (_targetType == 'specific' && _selectedClassIds.isEmpty) {
-      Get.snackbar(
+      CustomSnackBar.showError(
         "Error",
         "Please select at least one class for specific targeting",
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
       );
       return;
     }
@@ -86,30 +83,18 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "PUBLISH SETTINGS",
-            style: TextStyle(
-              color: const Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: SingleChildScrollView(
@@ -123,8 +108,8 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardColor,
+                    borderRadius: AppColors.cardBorderRadius,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
@@ -138,7 +123,7 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(10),
+                          top: Radius.circular(12),
                         ),
                         child: Image.network(
                           widget.banner.imageUrl,
@@ -198,8 +183,8 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardColor,
+                    borderRadius: AppColors.cardBorderRadius,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.03),
@@ -265,8 +250,8 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardColor,
+                    borderRadius: AppColors.cardBorderRadius,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.03),
@@ -336,8 +321,8 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
+                    color: AppColors.cardColor,
+                    borderRadius: AppColors.cardBorderRadius,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.03),
@@ -371,12 +356,9 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                               int? val = int.tryParse(value);
                               if (val != null && (val > 5 || val == 0)) {
                                 _daysController.clear();
-                                Get.snackbar(
+                                CustomSnackBar.showError(
                                   "Alert",
                                   "Only 1 to 5 days are allowed",
-                                  backgroundColor: Colors.red,
-                                  colorText: Colors.white,
-                                  snackPosition: SnackPosition.TOP,
                                   duration: const Duration(seconds: 2),
                                 );
                               }
@@ -410,13 +392,11 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                     () => ElevatedButton(
                       onPressed: controller.isPublishing.value ? null : _submit,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0038A8),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.buttonColor,
+                        foregroundColor: AppColors.buttonTextColor,
                         elevation: 4,
-                        shadowColor: const Color(0xFF1E2E5D).withOpacity(0.4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        shadowColor: AppColors.buttonColor.withOpacity(0.4),
+                        shape: AppColors.buttonShape,
                       ),
                       child: controller.isPublishing.value
                           ? const CircularProgressIndicator(color: Colors.white)
@@ -455,8 +435,8 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),

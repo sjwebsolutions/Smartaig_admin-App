@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/banner_model.dart';
 import 'package:smart_aig_admins_app/models/banner_classes_model.dart';
 import 'package:smart_aig_admins_app/services/banner_service.dart';
+import 'package:smart_aig_admins_app/services/notification_service.dart';
+import '../../utils/custom_snackbar.dart';
 
 class BannerController extends GetxController {
   final BannerService _service = BannerService();
@@ -30,14 +33,12 @@ class BannerController extends GetxController {
 
   Future<void> _playNotificationSound() async {
     try {
-      // Aapki original file ka naam yahan likh diya hai
       await _audioPlayer.play(AssetSource('sounds/ce49b0f5_1785475380_caac956a_1 (3).mp3'));
     } catch (e) {
       debugPrint("Error playing sound: $e");
     }
   }
 
-  // Naya function banner click par sound bajane ke liye
   void playClickSound() {
     _playNotificationSound();
   }
@@ -75,34 +76,24 @@ class BannerController extends GetxController {
         displayDays: displayDays,
       );
 
-      print("🚩 [Banner Publish Controller Response]: $response");
-
       if (response['success'] == true) {
         Get.back(); // Close screen/dialog
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Banner published successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchBanners(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to publish banner",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in publishBanner: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An unexpected error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to publish banner. Please check your connection and try again.",
       );
     } finally {
       isPublishing.value = false;
@@ -112,32 +103,23 @@ class BannerController extends GetxController {
   Future<void> toggleBannerStatus(int id) async {
     try {
       final response = await _service.toggleBannerStatus(id);
-      print("🚩 [Banner Toggle Response]: $response");
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Status updated successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchBanners(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to update status",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in toggleBannerStatus: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to update status. Please try again.",
       );
     }
   }
@@ -147,27 +129,28 @@ class BannerController extends GetxController {
       isLoading.value = true;
       final response = await _service.getBanners();
       if (response.success && response.publishedBanners != null) {
-        if (banners.isNotEmpty && response.publishedBanners!.length > banners.length) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final int previousCount = prefs.getInt('last_seen_banner_count') ?? -1;
+        if (previousCount != -1 && response.publishedBanners!.length > previousCount) {
           _playNotificationSound();
+          if (Get.isRegistered<NotificationService>()) {
+            final firstTitle = response.publishedBanners!.first.bannerName.isNotEmpty 
+                ? response.publishedBanners!.first.bannerName
+                : "A new banner has been published.";
+            NotificationService.to.showLocalNotification(
+              "New Banner Published 🖼️",
+              firstTitle,
+              payload: "banner",
+            );
+          }
         }
+        await prefs.setInt('last_seen_banner_count', response.publishedBanners!.length);
         banners.assignAll(response.publishedBanners!);
       } else {
-        Get.snackbar(
-          "Error",
-          "Failed to fetch banners",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        debugPrint("Failed to fetch banners");
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      debugPrint("Error in fetchBanners: $e");
     } finally {
       isLoading.value = false;
     }

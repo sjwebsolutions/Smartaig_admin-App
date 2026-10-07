@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/homework_controller.dart';
 import 'package:smart_aig_admins_app/models/homework_status_model.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class HomeworkScreen extends StatelessWidget {
   const HomeworkScreen({super.key});
@@ -16,39 +17,22 @@ class HomeworkScreen extends StatelessWidget {
     });
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
-          elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            "HOMEWORK STATUS",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
+      decoration: AppColors.screenDecoration,
+      child: SafeArea(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            toolbarHeight: AppColors.appBarToolbarHeight,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: AppColors.appBarCenterTitle,
+            leading: const CustomBackButton(),
+            title: const Text(
+              "HOMEWORK STATUS",
+              style: AppColors.appBarTitleStyle,
             ),
           ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
-          ),
-        ),
-        body: Obx(() {
+          body: Obx(() {
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -140,6 +124,7 @@ class HomeworkScreen extends StatelessWidget {
             ),
           );
         }),
+        ),
       ),
     );
   }
@@ -151,8 +136,8 @@ class HomeworkScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),

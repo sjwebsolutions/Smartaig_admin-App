@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/marks_entry_classes_controller.dart';
 import 'package:smart_aig_admins_app/models/marks_entry_classes_model.dart';
+import 'package:smart_aig_admins_app/view/screens/marks_entry_details_screen.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class MarksEntryClassesScreen extends StatelessWidget {
   final int examId;
@@ -21,32 +23,20 @@ class MarksEntryClassesScreen extends StatelessWidget {
     );
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFFF8F9FE),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: const Color(0xFF1E293B),
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: Column(
             children: [
               const Text(
                 "SELECT CLASS",
-                style: TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  letterSpacing: 1.1,
-                ),
+                style: AppColors.appBarTitleStyle,
               ),
               Text(
                 examTitle,
@@ -111,8 +101,8 @@ class MarksEntryClassesScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -126,9 +116,19 @@ class MarksEntryClassesScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Next step: Handle class selection (Subject/Section Selection)
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MarksEntryDetailsScreen(
+                  examId: examId,
+                  classId: classData.id,
+                  className: classData.name,
+                  examTitle: examTitle,
+                ),
+              ),
+            );
           },
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: AppColors.cardBorderRadius,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             child: Row(

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -6,21 +5,71 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view/screens/splash_screen.dart';
 import 'package:smart_aig_admins_app/services/notification_service.dart';
+
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  // Handle background data messages
-  if (message.data.isNotEmpty) {
-    // If you want to show a notification even if it's just data
-    final String title = message.notification?.title ?? message.data['title'] ?? "Attendance Update";
-    final String body = message.notification?.body ?? message.data['body'] ?? "New teacher attendance marked";
-    
-    // Note: We can't use Get.find() here easily as it's a separate isolate
-    // but the OS will show the 'notification' part automatically if present.
-  }
+  final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'callback_notification_channel',
+    'Callback & Alert Notifications',
+    description: 'Channel for callback requests and urgent admin alerts',
+    importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+    enableLights: true,
+    showBadge: true,
+  );
+
+  await localNotifications
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  RemoteNotification? notification = message.notification;
+
+  String title = notification?.title ?? 
+      message.data['title'] ?? 
+      message.data['heading'] ?? 
+      message.data['subject'] ?? 
+      'Callback Request';
+
+  String body = notification?.body ?? 
+      message.data['body'] ?? 
+      message.data['message'] ?? 
+      message.data['content'] ?? 
+      message.data['reason'] ?? 
+      'New callback request received.';
+
+  await localNotifications.show(
+    notification?.hashCode ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
+    title,
+    body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        channel.id,
+        channel.name,
+        channelDescription: channel.description,
+        importance: Importance.max,
+        priority: Priority.max,
+        playSound: true,
+        enableVibration: true,
+        icon: '@mipmap/ic_launcher',
+        styleInformation: const BigTextStyleInformation(''),
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+        sound: 'default',
+      ),
+    ),
+  );
 }
 
 void main() async {
@@ -33,7 +82,7 @@ void main() async {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.white,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
@@ -42,22 +91,19 @@ void main() async {
     // Firebase initialize safely
     try {
       await Firebase.initializeApp();
-      // Initialize Analytics & Crashlytics only if Firebase is ready
-      await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+      FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
       FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     } catch (e) {
       debugPrint("Firebase init error: $e");
     }
     
-    // Initialize Notification Service safely
+    // Initialize Notification Service synchronously
     try {
       await Get.putAsync(() => NotificationService().init());
     } catch (e) {
-      debugPrint("Notification Service error: $e");
+      debugPrint("NotificationService init error: $e");
     }
-    
-    // Set up background messaging handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e) {
     debugPrint("Main initialization error: $e");
   }
@@ -75,7 +121,7 @@ class MyApp extends StatelessWidget {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
-        systemNavigationBarColor: Colors.white,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
@@ -89,7 +135,7 @@ class MyApp extends StatelessWidget {
               statusBarColor: Colors.transparent,
               statusBarIconBrightness: Brightness.dark,
               statusBarBrightness: Brightness.light,
-              systemNavigationBarColor: Colors.white,
+              systemNavigationBarColor: Colors.transparent,
               systemNavigationBarIconBrightness: Brightness.dark,
               systemNavigationBarDividerColor: Colors.transparent,
             ),
@@ -103,6 +149,12 @@ class MyApp extends StatelessWidget {
               fontSize: 20,
               letterSpacing: 0.5,
             ),
+          ),
+          cardTheme: CardThemeData(
+            color: AppColors.cardColor,
+            shape: AppColors.cardShape,
+            elevation: 0,
+            margin: EdgeInsets.zero,
           ),
         ),
       ),

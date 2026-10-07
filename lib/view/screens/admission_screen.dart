@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/admission_controller.dart';
 import 'package:smart_aig_admins_app/models/admission_enquiry_model.dart';
 import 'package:smart_aig_admins_app/view/screens/admission_detail_screen.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class AdmissionScreen extends StatelessWidget {
   const AdmissionScreen({super.key});
@@ -12,36 +13,18 @@ class AdmissionScreen extends StatelessWidget {
     final AdmissionController controller = Get.put(AdmissionController());
 
     return Container(
-      decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+      decoration: AppColors.screenDecoration,
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: const Color(0xFF0038A8),
+          toolbarHeight: AppColors.appBarToolbarHeight,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-              size: 20,
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
+          centerTitle: AppColors.appBarCenterTitle,
+          leading: const CustomBackButton(),
           title: const Text(
             "ADMISSION ENQUIRIES",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              letterSpacing: 1.1,
-            ),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -139,8 +122,8 @@ class AdmissionScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: AppColors.cardColor,
+          borderRadius: AppColors.cardBorderRadius,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.02),

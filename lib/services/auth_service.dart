@@ -1,18 +1,68 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/auth_response_model.dart';
 import 'package:smart_aig_admins_app/models/dashboard_model.dart';
 import 'package:smart_aig_admins_app/models/billing_model.dart';
 
 import '../view/screens/auth/login_screen.dart';
+import '../utils/custom_snackbar.dart';
 
 class AuthService {
   static const String baseUrl = 'https://smartaig.com/api/v1';
+
+  String _formatError(dynamic e) {
+    final str = e.toString().toLowerCase();
+    if (str.contains('socketexception') ||
+        str.contains('clientexception') ||
+        str.contains('failed host lookup') ||
+        str.contains('no address associated') ||
+        str.contains('connection refused') ||
+        str.contains('timeoutexception') ||
+        str.contains('network is unreachable')) {
+      return "Network error: Please check your internet connection and try again.";
+    }
+    return "Something went wrong. Please try again.";
+  }
+
+  Future<void> updateFcmTokenOnServer(String fcmToken) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+    if (token == null || token.isEmpty) return;
+
+    final endpoints = [
+      '$baseUrl/admin-teacher/fcm-token',
+      '$baseUrl/admin-teacher/device-token',
+      '$baseUrl/admin-teacher/auth/fcm-token',
+      '$baseUrl/admin-teacher/update-fcm-token',
+    ];
+
+    for (String endpoint in endpoints) {
+      try {
+        await http.post(
+          Uri.parse(endpoint),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            "fcm_token": fcmToken,
+            "device_token": fcmToken,
+            "token": fcmToken,
+            "platform": Platform.operatingSystem,
+          }),
+        ).timeout(const Duration(seconds: 4));
+      } catch (e) {
+        // Silently continue
+      }
+    }
+  }
 
   Future<Map<String, dynamic>> sendOtp(String phoneNumber) async {
     final url = Uri.parse('$baseUrl/admin-teacher/auth/otp/request');
@@ -45,16 +95,29 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'User-Agent': 'SmartAIGAdminApp/1.0 (Mobile)',
         },
         body: jsonEncode(body),
       ).timeout(const Duration(seconds: 15));
 
+      Map<String, dynamic> responseData = {};
+      try {
+        responseData = jsonDecode(response.body);
+      } catch (e) {
+        // Body is not JSON
+      }
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        return jsonDecode(response.body);
+        return responseData;
+      } else if (response.statusCode == 429) {
+        return {
+          "success": false,
+          "message": responseData['message'] ?? "Too many requests. Please wait a few minutes and try again."
+        };
       } else {
         return {
           "success": false,
-          "message": "Server error: ${response.statusCode}. Please try again later."
+          "message": responseData['message'] ?? "Server error: ${response.statusCode}. Please try again later."
         };
       }
     } on SocketException {
@@ -70,7 +133,7 @@ class AuthService {
     } catch (e) {
       return {
         "success": false,
-        "message": "Error occurred: $e"
+        "message": _formatError(e)
       };
     }
   }
@@ -102,6 +165,7 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'User-Agent': 'SmartAIGAdminApp/1.0 (Mobile)',
         },
         body: jsonEncode({
           "whatsapp_number": phoneNumber,
@@ -112,13 +176,22 @@ class AuthService {
         }),
       ).timeout(const Duration(seconds: 15));
 
+      Map<String, dynamic> responseData = {};
+      try {
+        responseData = jsonDecode(response.body);
+      } catch (_) {}
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
         return AuthResponseModel.fromJson(responseData);
+      } else if (response.statusCode == 429) {
+        return AuthResponseModel(
+          success: false,
+          message: responseData['message'] ?? "Too many attempts. Please try again later.",
+        );
       } else {
         return AuthResponseModel(
           success: false,
-          message: "Server error: ${response.statusCode}. Please try again later.",
+          message: responseData['message'] ?? "Server error: ${response.statusCode}. Please try again later.",
         );
       }
     } on SocketException {
@@ -134,7 +207,7 @@ class AuthService {
     } catch (e) {
       return AuthResponseModel(
         success: false,
-        message: "Error occurred: $e",
+        message: _formatError(e),
       );
     }
   }
@@ -144,39 +217,67 @@ class AuthService {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? token = prefs.getString('token');
 
+    // Sync FCM token with server in background safely
     try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      ).timeout(const Duration(seconds: 15));
-
-      if (response.statusCode == 200) {
-        return DashboardModel.fromJson(jsonDecode(response.body));
-      } else if (response.statusCode == 401) {
-        _forceLogout();
-        return DashboardModel(success: false);
-      } else {
-        return DashboardModel(success: false);
-      }
+      FirebaseMessaging.instance.getToken().then((fcmToken) {
+        if (fcmToken != null && fcmToken.isNotEmpty) {
+          updateFcmTokenOnServer(fcmToken);
+        }
+      }).catchError((e) {
+        if (kDebugMode) {
+          debugPrint("FCM token sync error in getDashboardData: $e");
+        }
+      });
     } catch (e) {
-      return DashboardModel(success: false);
+      if (kDebugMode) {
+        debugPrint("FCM instance error in getDashboardData: $e");
+      }
     }
+
+    for (int attempt = 0; attempt < 2; attempt++) {
+      try {
+        final response = await http.get(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+          },
+        ).timeout(const Duration(seconds: 25));
+
+        if (kDebugMode) {
+          debugPrint("getDashboardData response code: ${response.statusCode}");
+        }
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            return DashboardModel.fromJson(decoded);
+          }
+        } else if (response.statusCode == 401) {
+          _forceLogout();
+          return DashboardModel(success: false);
+        } else {
+          if (attempt == 1) return DashboardModel(success: false);
+        }
+      } catch (e, stack) {
+        if (kDebugMode) {
+          debugPrint("getDashboardData exception (attempt $attempt): $e\n$stack");
+        }
+        if (attempt == 1) return DashboardModel(success: false);
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+    return DashboardModel(success: false);
   }
 
   void _forceLogout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     Get.offAll(() => const LoginScreen());
-    Get.snackbar(
+    CustomSnackBar.showError(
       "Session Expired",
       "Please login again",
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
     );
   }
 
@@ -243,7 +344,7 @@ class AuthService {
         return {"success": false, "message": "Logout server error: ${response.statusCode}"};
       }
     } catch (e) {
-      return {"success": false, "message": "Error occurred: $e"};
+      return {"success": false, "message": _formatError(e)};
     }
   }
 }

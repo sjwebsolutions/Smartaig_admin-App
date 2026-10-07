@@ -1,13 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/announcement_model.dart';
 import 'package:smart_aig_admins_app/models/announcement_detail_model.dart';
 import 'package:smart_aig_admins_app/models/announcement_type_model.dart';
 import 'package:smart_aig_admins_app/models/targeting_data_model.dart';
-import 'package:smart_aig_admins_app/models/create_announcement_response.dart';
 import 'package:smart_aig_admins_app/services/announcement_service.dart';
 import 'package:smart_aig_admins_app/services/notification_service.dart';
-import 'dart:io';
+import '../../utils/custom_snackbar.dart';
 
 class AnnouncementController extends GetxController {
   final AnnouncementService _service = AnnouncementService();
@@ -19,7 +20,6 @@ class AnnouncementController extends GetxController {
   int get totalAnnouncements => announcements.length;
 
   var isLoadingDetails = false.obs;
-// ... (rest of imports and class starts)
   var announcementDetail = Rxn<AnnouncementDetail>();
 
   var isLoadingTypes = false.obs;
@@ -69,30 +69,22 @@ class AnnouncementController extends GetxController {
 
       if (response.success) {
         Get.back();
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response.message,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response.message,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error creating announcement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An unexpected error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Unable to create announcement. Please check your connection and try again.",
       );
     } finally {
       isSubmitting.value = false;
@@ -130,30 +122,22 @@ class AnnouncementController extends GetxController {
 
       if (response.success) {
         Get.back();
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response.message,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response.message,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error updating announcement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An unexpected error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Unable to update announcement. Please check your connection and try again.",
       );
     } finally {
       isSubmitting.value = false;
@@ -182,9 +166,6 @@ class AnnouncementController extends GetxController {
       final response = await _service.getAnnouncementTypes();
       if (response.success && response.data != null) {
         announcementTypes.value = response.data!;
-      } else {
-        // Only show snackbar if it's not a background fetch or if error is critical
-        // For types, we might want to be silent if it's just a lookup
       }
     } catch (e) {
       debugPrint("Error fetching types: $e");
@@ -198,31 +179,27 @@ class AnnouncementController extends GetxController {
       isLoading.value = true;
       final response = await _service.getAnnouncements();
       if (response.success && response.data != null) {
-        // Notification logic for new announcements
-        if (announcements.isNotEmpty && response.data!.length > announcements.length) {
-          NotificationService.to.showLocalNotification(
-            "New Announcement",
-            "A new announcement has been posted.",
-          );
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final int previousCount = prefs.getInt('last_seen_announcement_count') ?? -1;
+        if (previousCount != -1 && response.data!.length > previousCount) {
+          if (Get.isRegistered<NotificationService>()) {
+            final firstTitle = response.data!.first.title.isNotEmpty 
+                ? response.data!.first.title 
+                : "A new announcement has been posted.";
+            NotificationService.to.showLocalNotification(
+              "New Announcement 📢",
+              firstTitle,
+              payload: "announcement",
+            );
+          }
         }
+        await prefs.setInt('last_seen_announcement_count', response.data!.length);
         announcements.value = response.data!;
       } else {
-        Get.snackbar(
-          "Error",
-          response.message ?? "Failed to fetch announcements",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+        debugPrint("Failed to fetch announcements: ${response.message}");
       }
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      debugPrint("Error in fetchAnnouncements: $e");
     } finally {
       isLoading.value = false;
     }
@@ -235,21 +212,16 @@ class AnnouncementController extends GetxController {
       if (response.success && response.data != null) {
         announcementDetail.value = response.data;
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response.message ?? "Failed to fetch announcement details",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in fetchAnnouncementDetails: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to fetch announcement details. Please check your connection.",
       );
     } finally {
       isLoadingDetails.value = false;
@@ -259,33 +231,24 @@ class AnnouncementController extends GetxController {
   Future<void> toggleStatus(int id) async {
     try {
       final response = await _service.toggleAnnouncementStatus(id);
-      print("📢 [Announcement Toggle Response]: $response");
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Status updated successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list to see updated status
         fetchAnnouncementDetails(id); // Refresh current details
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to update status",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in toggleStatus: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to update status. Please try again.",
       );
     }
   }
@@ -294,30 +257,22 @@ class AnnouncementController extends GetxController {
     try {
       final response = await _service.lockAnnouncement(id);
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Announcement locked successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.orange,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to lock announcement",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in lockAnnouncement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to lock announcement. Please try again.",
       );
     }
   }
@@ -326,30 +281,22 @@ class AnnouncementController extends GetxController {
     try {
       final response = await _service.unlockAnnouncement(id);
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Announcement unlocked successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to unlock announcement",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in unlockAnnouncement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to unlock announcement. Please try again.",
       );
     }
   }
@@ -358,30 +305,22 @@ class AnnouncementController extends GetxController {
     try {
       final response = await _service.publishAnnouncement(id, sendToParents: sendToParents, sendToTeachers: sendToTeachers);
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Announcement published successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.blue,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to publish announcement",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in publishAnnouncement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to publish announcement. Please try again.",
       );
     }
   }
@@ -390,30 +329,22 @@ class AnnouncementController extends GetxController {
     try {
       final response = await _service.unpublishAnnouncement(id);
       if (response['success'] == true) {
-        Get.snackbar(
+        CustomSnackBar.showSuccess(
           "Success",
           response['message'] ?? "Announcement unpublished successfully",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.grey,
-          colorText: Colors.white,
         );
         fetchAnnouncements(); // Refresh list
       } else {
-        Get.snackbar(
+        CustomSnackBar.showError(
           "Error",
           response['message'] ?? "Failed to unpublish announcement",
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
         );
       }
     } catch (e) {
-      Get.snackbar(
+      debugPrint("Error in unpublishAnnouncement: $e");
+      CustomSnackBar.showError(
         "Error",
-        "An error occurred: $e",
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+        "Failed to unpublish announcement. Please try again.",
       );
     }
   }

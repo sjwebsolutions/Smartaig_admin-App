@@ -7,7 +7,10 @@ class MarksEntryClassDetailsController extends GetxController {
   final int classId;
   final MarksEntryService _marksEntryService = MarksEntryService();
 
-  MarksEntryClassDetailsController({required this.examId, required this.classId});
+  MarksEntryClassDetailsController({
+    required this.examId,
+    required this.classId,
+  });
 
   var isLoading = true.obs;
   var classDetails = Rxn<ClassDetailsData>();
@@ -30,6 +33,7 @@ class MarksEntryClassDetailsController extends GetxController {
       }
     } catch (e) {
       print("MarksEntryClassDetailsController Error: $e");
+      success.value = false;
     } finally {
       isLoading.value = false;
     }

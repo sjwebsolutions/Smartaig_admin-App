@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class PolicyDetailScreen extends StatelessWidget {
   final String title;
@@ -14,30 +15,21 @@ class PolicyDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FE),
+        toolbarHeight: AppColors.appBarToolbarHeight,
+        backgroundColor: Colors.transparent,
         title: Text(
           title,
-          style: const TextStyle(
-            color: const Color(0xFF1E293B),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: AppColors.appBarTitleStyle,
         ),
-        centerTitle: true,
+        centerTitle: AppColors.appBarCenterTitle,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: const Color(0xFF1E293B),
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const CustomBackButton(),
       ),
       body: Container(
-        decoration: const BoxDecoration(color: Color(0xFFF8F9FE)),
+        decoration: AppColors.screenDecoration,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(
@@ -59,8 +51,8 @@ class PolicyDetailScreen extends StatelessWidget {
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.0),
+                  color: AppColors.cardColor,
+                  borderRadius: AppColors.cardBorderRadius,
                   border: Border.all(color: const Color(0xFFE2E8F0)),
                   boxShadow: [
                     BoxShadow(
@@ -71,7 +63,7 @@ class PolicyDetailScreen extends StatelessWidget {
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.0),
+                  borderRadius: AppColors.cardBorderRadius,
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.all(20.0),

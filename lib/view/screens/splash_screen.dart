@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:ui';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_aig_admins_app/services/notification_service.dart';
+import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view/screens/auth/login_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/main_screen.dart';
 
@@ -17,41 +14,49 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _containerController;
+  late Animation<Offset> _containerSlide;
+
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    _updateSystemUI();
+    _setupAnimation();
+    _startAnimation();
+    _checkAuthStatus();
   }
 
-  Future<void> _initializeApp() async {
-    try {
-      // 1. Initialize Firebase
-      await Firebase.initializeApp();
+  void _updateSystemUI() {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+  }
 
-      // 2. Initialize Analytics & Crashlytics
-      FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
-      FlutterError.onError = (errorDetails) {
-        FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
-      };
-      PlatformDispatcher.instance.onError = (error, stack) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return true;
-      };
+  void _setupAnimation() {
+    _containerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
 
-      // 3. Initialize Notification Service
-      try {
-        await Get.putAsync(() => NotificationService().init());
-      } catch (e) {
-        debugPrint("Notification init failed, continuing: $e");
-      }
-    } catch (e) {
-      debugPrint("Core initialization error: $e");
-      // Continue anyway to try and show at least the login/main screen
-    } finally {
-      // Check Auth status regardless of init success/fail
-      _checkAuthStatus();
-    }
+    _containerSlide = Tween<Offset>(
+      begin: const Offset(0, 1.5),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _containerController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+  }
+
+  void _startAnimation() {
+    _containerController.forward();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -59,110 +64,110 @@ class _SplashScreenState extends State<SplashScreen> {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
-      // Ensure splash is visible for at least 2 seconds
-      await Future.delayed(const Duration(seconds: 2));
+      // Fast, smooth transition duration
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      if (!mounted) return;
 
       if (token != null && token.isNotEmpty && token != 'null') {
-        Get.offAll(() => const MainScreen());
+        Get.offAll(
+          () => const MainScreen(),
+          transition: Transition.fadeIn,
+          duration: const Duration(milliseconds: 300),
+        );
       } else {
-        Get.offAll(() => const LoginScreen());
+        Get.offAll(
+          () => const LoginScreen(),
+          transition: Transition.fadeIn,
+          duration: const Duration(milliseconds: 300),
+        );
       }
     } catch (e) {
       debugPrint("Auth check error: $e");
-      Get.offAll(() => const LoginScreen());
+      if (mounted) {
+        Get.offAll(() => const LoginScreen());
+      }
     }
   }
 
   @override
+  void dispose() {
+    _containerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.white,
-        child: SafeArea(
-          child: Column(
-            children: [
-              const Spacer(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      decoration: AppColors.screenDecoration,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Stack(
+          children: [
+            SafeArea(
+              child: Column(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      "assets/images/splash_logo.png",
-                      width: 150,
-                      height: 150,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    "SMART AIG ADMIN APP",
-                    style: TextStyle(
-                      fontSize: 17,
-                      color: Color(0xFF0038A8),
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 60),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Divider(
-                            color: const Color(0xFF0038A8).withOpacity(0.2),
-                            thickness: 1,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            "Administrative Informative Group",
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: const Color(0xFF0038A8).withOpacity(0.5),
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            color: const Color(0xFF0038A8).withOpacity(0.2),
-                            thickness: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 50),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      width: 180,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: const LinearProgressIndicator(
-                          minHeight: 5,
-                          backgroundColor: Color(0xFFF5F5F5),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF0038A8),
+                  Expanded(
+                    child: Center(
+                      child: SlideTransition(
+                        position: _containerSlide,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset(
+                                "assets/images/splash_logo.png",
+                                width: 180,
+                                height: 180,
+                                fit: BoxFit.contain,
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                "Smart AIG - Admins App",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  color: Color(0xFF132A60),
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Administrative Info Group',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF64748B),
+                                  letterSpacing: 5.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+
+                  // Loader
+                  Padding(
+                    padding: const EdgeInsets.only(left: 80, right: 80, bottom: 60),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        color: const Color(0xFF0038A8),
+                        backgroundColor: Colors.white.withValues(alpha: 0.4),
+                        minHeight: 4,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
