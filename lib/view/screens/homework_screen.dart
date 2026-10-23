@@ -114,7 +114,7 @@ class HomeworkScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchHomeworkStatus(),
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               itemCount: statusData.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {

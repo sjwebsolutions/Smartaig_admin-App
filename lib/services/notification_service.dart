@@ -1,15 +1,54 @@
+import 'dart:io';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/services/auth_service.dart';
+import 'package:smart_aig_admins_app/view_models/getX/notification_controller.dart';
 
 class NotificationService extends GetxService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   static NotificationService get to => Get.find();
 
+  Future<void> _playNotificationSound() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(
+        UrlSource('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'),
+        volume: 1.0,
+      );
+    } catch (e) {
+      debugPrint("Audio sound play error: $e");
+    }
+  }
+
   Future<NotificationService> init() async {
+    // Enable iOS Playback Audio Category so sound plays even on silent / simulator
+    try {
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+            options: const {
+              AVAudioSessionOptions.mixWithOthers,
+              AVAudioSessionOptions.duckOthers,
+            },
+          ),
+          android: const AudioContextAndroid(
+            usageType: AndroidUsageType.notification,
+            contentType: AndroidContentType.sonification,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error setting AudioContext: $e");
+    }
+
     // 1. Request permissions for iOS and Android
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
@@ -20,7 +59,7 @@ class NotificationService extends GetxService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted notification permissions');
+      debugPrint('User granted notification permissions');
     }
 
     // 2. Request native Android 13+ Notification Permission
@@ -56,6 +95,9 @@ class NotificationService extends GetxService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      defaultPresentAlert: true,
+      defaultPresentSound: true,
+      defaultPresentBadge: true,
     );
     const InitializationSettings initSettings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
@@ -66,7 +108,98 @@ class NotificationService extends GetxService {
       },
     );
 
-    // 5. Subscribe to all relevant callback, leave, announcement, banner, and admin topics asynchronously
+    // 5. Asynchronously register FCM Token and subscribe to topics
+    Future.microtask(() async {
+      await syncFcmTokenAndSubscriptions();
+    });
+
+    // 6. Listen for FCM token refreshes and re-sync
+    _messaging.onTokenRefresh.listen((newToken) async {
+      debugPrint("FCM Token Refreshed: $newToken");
+      await AuthService().updateFcmTokenOnServer(newToken);
+      await _subscribeToDefaultTopics();
+    });
+
+    // 7. Foreground notifications listener
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+
+      String title = notification?.title ?? 
+          message.data['title'] ?? 
+          message.data['heading'] ?? 
+          message.data['subject'] ?? 
+          (message.data['type']?.toString().contains('callback') == true ? 'New Callback Request 📞' : null) ??
+          'New Callback Request 📞';
+
+      String body = notification?.body ?? 
+          message.data['body'] ?? 
+          message.data['message'] ?? 
+          message.data['content'] ?? 
+          message.data['reason'] ?? 
+          (message.data['parent_name'] != null ? 'Callback request from ${message.data['parent_name']}' : null) ??
+          'You have received a new callback request.';
+
+      try {
+        NotificationController.to.incrementUnread();
+      } catch (_) {}
+
+      showLocalNotification(title, body, payload: message.data.isNotEmpty ? message.data.toString() : null);
+    });
+
+    // 8. Handle when app is opened from a notification (terminated state)
+    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleNotificationTap(initialMessage.data.toString());
+    }
+
+    // 9. Handle when app is opened from a notification (background state)
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _handleNotificationTap(message.data.toString());
+    });
+
+    return this;
+  }
+
+  /// Ensures APNs token is checked quickly on iOS without blocking
+  Future<bool> _ensureApnsTokenReady() async {
+    if (Platform.isIOS) {
+      try {
+        String? apnsToken = await _messaging.getAPNSToken();
+        if (apnsToken != null) return true;
+        for (int i = 0; i < 3; i++) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          apnsToken = await _messaging.getAPNSToken();
+          if (apnsToken != null) {
+            debugPrint('iOS APNs token acquired: $apnsToken');
+            return true;
+          }
+        }
+      } catch (e) {
+        debugPrint("APNs check error: $e");
+      }
+    }
+    return true;
+  }
+
+  /// Syncs FCM Token with backend and subscribes to default topics
+  Future<void> syncFcmTokenAndSubscriptions() async {
+    await _ensureApnsTokenReady();
+
+    // Fetch & sync FCM token with backend server
+    try {
+      String? token = await _messaging.getToken();
+      if (token != null && token.isNotEmpty) {
+        debugPrint("FCM Token (${Platform.operatingSystem}): $token");
+        await AuthService().updateFcmTokenOnServer(token);
+      }
+    } catch (e) {
+      debugPrint("Error fetching FCM token: $e");
+    }
+
+    await _subscribeToDefaultTopics();
+  }
+
+  Future<void> _subscribeToDefaultTopics() async {
     final List<String> topics = [
       'all',
       'admins',
@@ -91,108 +224,66 @@ class NotificationService extends GetxService {
       'banner',
       'announcements_all',
       'banners_all',
+      'support_crew',
+      'support_crew_banners',
       'notifications',
     ];
 
-    Future.microtask(() async {
-      for (String topic in topics) {
-        try {
-          await _messaging.subscribeToTopic(topic);
-        } catch (e) {
-          // Continue subscribing
-        }
-      }
-    });
+    for (String topic in topics) {
+      await subscribeToTopicSafely(topic);
+    }
+  }
 
-    // 6. Fetch & sync FCM token with backend server
+  /// Safely subscribe to any single topic
+  Future<void> subscribeToTopicSafely(String topic) async {
     try {
-      String? token = await _messaging.getToken();
-      if (token != null && token.isNotEmpty) {
-        print("FCM Token: $token");
-        AuthService().updateFcmTokenOnServer(token);
-      }
-      _messaging.onTokenRefresh.listen((newToken) {
-        print("FCM Token Refreshed: $newToken");
-        AuthService().updateFcmTokenOnServer(newToken);
-      });
+      await _messaging.subscribeToTopic(topic);
+      debugPrint("Successfully subscribed to topic: $topic");
     } catch (e) {
-      print("Error fetching FCM token: $e");
+      debugPrint("Error subscribing to topic $topic: $e");
     }
+  }
 
-    // 7. Foreground notifications listener
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
+  /// Subscribe to school-specific topics when dashboard or user details load
+  Future<void> syncSchoolTopics(String schoolCode) async {
+    final cleanCode = schoolCode.trim();
+    if (cleanCode.isEmpty) return;
 
-      String title = notification?.title ?? 
-          message.data['title'] ?? 
-          message.data['heading'] ?? 
-          message.data['subject'] ?? 
-          (message.data['type']?.toString().contains('callback') == true ? 'New Callback Request' : null) ??
-          'New Callback Request';
+    final List<String> schoolTopics = [
+      'callback_requests_$cleanCode',
+      'callbacks_$cleanCode',
+      'callback_$cleanCode',
+      'announcements_$cleanCode',
+      'banners_$cleanCode',
+      'school_$cleanCode',
+      'admin_$cleanCode',
+    ];
 
-      String body = notification?.body ?? 
-          message.data['body'] ?? 
-          message.data['message'] ?? 
-          message.data['content'] ?? 
-          message.data['reason'] ?? 
-          (message.data['parent_name'] != null ? 'Callback request from ${message.data['parent_name']}' : null) ??
-          'You have received a new callback request.';
-
-      _localNotifications.show(
-        notification?.hashCode ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
-        title,
-        body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            channelDescription: channel.description,
-            importance: Importance.max,
-            priority: Priority.max,
-            playSound: true,
-            enableVibration: true,
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-            styleInformation: const BigTextStyleInformation(''),
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-            sound: 'default',
-          ),
-        ),
-        payload: message.data.isNotEmpty ? message.data.toString() : null,
-      );
-    });
-
-    // 8. Handle when app is opened from a notification (terminated state)
-    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      _handleNotificationTap(initialMessage.data.toString());
+    for (String topic in schoolTopics) {
+      await subscribeToTopicSafely(topic);
     }
-
-    // 9. Handle when app is opened from a notification (background state)
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      _handleNotificationTap(message.data.toString());
-    });
-
-    return this;
   }
 
   void _handleNotificationTap(String? payload) {
     if (payload != null) {
-      print("Notification Tapped with payload: $payload");
+      debugPrint("Notification Tapped with payload: $payload");
     }
   }
 
   Future<String?> getToken() async {
-    String? token = await _messaging.getToken();
-    print("FCM Token: $token");
-    return token;
+    try {
+      String? token = await _messaging.getToken();
+      debugPrint("FCM Token: $token");
+      return token;
+    } catch (e) {
+      debugPrint("Error getting FCM Token: $e");
+      return null;
+    }
   }
 
   Future<void> showLocalNotification(String title, String body, {String? payload}) async {
+    _playNotificationSound();
+
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'callback_notification_channel',
       'Callback & Alert Notifications',
@@ -211,12 +302,31 @@ class NotificationService extends GetxService {
         sound: 'default',
       ),
     );
+    
+    int id = DateTime.now().microsecondsSinceEpoch.remainder(1000000).abs();
+    if (id == 0) id = 1;
+
     await _localNotifications.show(
-      DateTime.now().millisecond,
+      id,
       title,
       body,
       details,
       payload: payload,
     );
+
+    try {
+      Get.snackbar(
+        title,
+        body,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: const Color(0xFF1E293B),
+        colorText: Colors.white,
+        icon: const Icon(Icons.phone_callback_rounded, color: Colors.greenAccent),
+        duration: const Duration(seconds: 4),
+        margin: const EdgeInsets.all(12),
+        borderRadius: 12,
+        isDismissible: true,
+      );
+    } catch (_) {}
   }
 }

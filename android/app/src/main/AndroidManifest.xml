@@ -4,6 +4,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
@@ -41,6 +44,9 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="true" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="callback_notification_channel" />

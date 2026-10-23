@@ -38,7 +38,7 @@ class SyllabusScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: controller.termsList.length + 1,
                   itemBuilder: (context, index) {
                     if (index == 0) {

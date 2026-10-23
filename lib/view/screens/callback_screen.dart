@@ -71,7 +71,7 @@ class _CallbackScreenState extends State<CallbackScreen> {
             return RefreshIndicator(
               onRefresh: () => controller.fetchCallbackRequests(),
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 children: [
                   // 1. Summary Stats
                   _buildSummaryCard(summary),

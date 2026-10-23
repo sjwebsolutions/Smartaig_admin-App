@@ -42,9 +42,8 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
-      if config.name == 'Release' || config.name == 'Profile'
-        config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
-      end
+      config.build_settings['DEBUG_INFORMATION_FORMAT'] = 'dwarf-with-dsym'
+      config.build_settings['STRIP_INSTALLED_PRODUCT'] = 'YES'
     end
   end
 end

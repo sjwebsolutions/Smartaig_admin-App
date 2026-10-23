@@ -161,6 +161,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       "Send to Teachers",
                       detail.sendToTeachers == 1 ? "Yes" : "No",
                     ),
+                    _buildInfoRow(
+                      Icons.support_agent_outlined,
+                      "Send to Support Crew",
+                      detail.sendToSupportCrew == 1 ? "Yes" : "No",
+                    ),
                   ]),
                   const SizedBox(height: 16),
                   _buildInfoSection("Status", [

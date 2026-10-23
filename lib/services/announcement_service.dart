@@ -459,7 +459,12 @@ class AnnouncementService {
     }
   }
 
-  Future<Map<String, dynamic>> publishAnnouncement(int id, {required int sendToParents, required int sendToTeachers}) async {
+  Future<Map<String, dynamic>> publishAnnouncement(
+    int id, {
+    required int sendToParents,
+    required int sendToTeachers,
+    int sendToSupportCrew = 0,
+  }) async {
     final url = Uri.parse('$baseUrl/admin-teacher/announcements/publish/$id');
     _log("POST Request to: $url");
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -475,6 +480,7 @@ class AnnouncementService {
         body: jsonEncode({
           'send_to_parents': sendToParents,
           'send_to_teachers': sendToTeachers,
+          'send_to_support_crew': sendToSupportCrew,
         }),
       ).timeout(const Duration(seconds: 15));
 

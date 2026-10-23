@@ -55,7 +55,7 @@ class BillingScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchBillings(),
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               itemCount: controller.billingList.length,
               itemBuilder: (context, index) {
                 final billing = controller.billingList[index];

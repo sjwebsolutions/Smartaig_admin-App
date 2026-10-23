@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view/screens/auth/login_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/main_screen.dart';
+import 'package:smart_aig_admins_app/view_models/getX/dashboard_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -64,8 +65,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
+      if (token != null && token.isNotEmpty && token != 'null') {
+        // Pre-initialize DashboardController in background while splash is visible
+        if (!Get.isRegistered<DashboardController>()) {
+          Get.put(DashboardController());
+        }
+      }
+
       // Fast, smooth transition duration
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 700));
 
       if (!mounted) return;
 
@@ -152,15 +160,40 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ),
 
-                  // Loader
                   Padding(
-                    padding: const EdgeInsets.only(left: 80, right: 80, bottom: 60),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        color: const Color(0xFF0038A8),
-                        backgroundColor: Colors.white.withValues(alpha: 0.4),
-                        minHeight: 4,
+                    padding: const EdgeInsets.only(left: 20, right: 20, bottom: 40),
+                    child: Container(
+                      width: double.infinity,
+                      height: 12,
+                      margin: const EdgeInsets.symmetric(horizontal: 50),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFF132A60).withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF132A60).withValues(alpha: 0.08),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: Center(
+                        child: SizedBox(
+                          height: 5,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 4, right: 4),
+                            child: LinearProgressIndicator(
+                              borderRadius: const BorderRadius.all(Radius.circular(20)),
+                              color: const Color(0xFF132A60),
+                              backgroundColor: const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

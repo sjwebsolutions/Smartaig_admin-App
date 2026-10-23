@@ -77,7 +77,7 @@ class _CallbackDetailScreenState extends State<CallbackDetailScreen> {
             return RefreshIndicator(
               onRefresh: () => controller.fetchCallbackDetail(widget.requestId),
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 children: [
                   // 1. Status & Header Card
                   _buildHeaderCard(detail),

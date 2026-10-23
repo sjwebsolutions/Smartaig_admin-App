@@ -59,7 +59,7 @@ class MeetingScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchMeetings(),
             child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               itemCount: controller.meetings.length,
               itemBuilder: (context, index) {
                 final meeting = controller.meetings[index];

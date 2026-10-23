@@ -35,9 +35,11 @@ class Announcement {
   final String publishStatus;
   final int sendToParents;
   final int sendToTeachers;
+  final int sendToSupportCrew;
   final String targetsSummary;
   final String createdBy;
   final bool isEditable;
+  final String? createdAt;
 
   Announcement({
     required this.id,
@@ -54,9 +56,11 @@ class Announcement {
     required this.publishStatus,
     required this.sendToParents,
     required this.sendToTeachers,
+    this.sendToSupportCrew = 0,
     required this.targetsSummary,
     required this.createdBy,
     required this.isEditable,
+    this.createdAt,
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) {
@@ -75,9 +79,11 @@ class Announcement {
       publishStatus: json['publish_status'] ?? '',
       sendToParents: json['send_to_parents'] ?? 0,
       sendToTeachers: json['send_to_teachers'] ?? 0,
+      sendToSupportCrew: json['send_to_support_crew'] ?? 0,
       targetsSummary: json['targets_summary'] ?? '',
       createdBy: json['created_by'] ?? '',
       isEditable: json['is_editable'] ?? false,
+      createdAt: json['created_at']?.toString(),
     );
   }
 }

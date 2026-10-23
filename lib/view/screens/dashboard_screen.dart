@@ -13,6 +13,7 @@ import 'package:smart_aig_admins_app/view/screens/marks_entry_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/exam_result_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/homework_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/student_count_screen.dart';
+import 'package:smart_aig_admins_app/view/screens/transport_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/admission_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/syllabus_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/invigilator_duty_screen.dart';
@@ -51,7 +52,7 @@ class DashboardScreen extends StatelessWidget {
     final double statValueFontSize = (screenWidth * 0.045).clamp(15.0, 20.0);
     final double sectionTitleFontSize = (screenWidth * 0.032).clamp(11.5, 13.5);
     final double gridCardTitleFontSize = (screenWidth * 0.027).clamp(9.5, 11.5);
-    final double gridCardAspectRatio = ((screenWidth - 32 - 12) / 3 / 88).clamp(1.05, 1.30);
+    final double gridCardAspectRatio = ((screenWidth - 24 - 12) / 3 / 96).clamp(0.96, 1.20);
 
     final DashboardController controller = Get.isRegistered<DashboardController>()
         ? Get.find<DashboardController>()
@@ -94,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
               (controller.dashboardData.value == null && !controller.hasError.value);
 
           if (isDashboardLoading) {
-            return _buildShimmerLoading();
+            return _buildShimmerLoading(context);
           }
 
           final data = controller.dashboardData.value;
@@ -146,7 +147,7 @@ class DashboardScreen extends StatelessWidget {
 
                     // Greeting & Teacher Reviewer Row
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 12, right: 12, top: 4, bottom: 6),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -188,11 +189,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
-
                     // Main School Profile Card
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
                       child: Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
@@ -214,7 +213,7 @@ class DashboardScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 1. TOP ROW: Square Image on Left + Admin Name on Right
+                            // 1. TOP ROW: Square Image on Left + School Name on Right
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -239,65 +238,72 @@ class DashboardScreen extends StatelessWidget {
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
-                                    child: data.school.logo != null && data.school.logo!.isNotEmpty
-                                        ? CachedNetworkImage(
-                                            imageUrl: data.school.logo!,
-                                            fit: BoxFit.cover,
-                                            memCacheWidth: 150,
-                                            memCacheHeight: 150,
-                                            placeholder: (context, url) => _buildDefaultAvatar(),
-                                            errorWidget: (context, url, error) => _buildDefaultAvatar(),
-                                          )
-                                        : _buildDefaultAvatar(),
+                                    child: () {
+                                      final String? teacherUrl = data.teacher.uploadedProfileImageUrl;
+                                      final String? logoUrl = data.school.formattedLogo;
+                                      final String? displayUrl = (logoUrl != null && logoUrl.isNotEmpty)
+                                          ? logoUrl
+                                          : teacherUrl ?? (data.teacher.profileImageUrl.isNotEmpty ? data.teacher.profileImageUrl : null);
+
+                                      return displayUrl != null && displayUrl.isNotEmpty
+                                          ? CachedNetworkImage(
+                                              imageUrl: displayUrl,
+                                              fit: BoxFit.cover,
+                                              memCacheWidth: 150,
+                                              memCacheHeight: 150,
+                                              placeholder: (context, url) => _buildDefaultAvatar(isPerson: displayUrl == teacherUrl),
+                                              errorWidget: (context, url, error) {
+                                                if (displayUrl != teacherUrl && teacherUrl != null && teacherUrl.isNotEmpty) {
+                                                  return CachedNetworkImage(
+                                                    imageUrl: teacherUrl,
+                                                    fit: BoxFit.cover,
+                                                    memCacheWidth: 150,
+                                                    memCacheHeight: 150,
+                                                    placeholder: (context, url) => _buildDefaultAvatar(isPerson: true),
+                                                    errorWidget: (context, url, error) => _buildDefaultAvatar(),
+                                                  );
+                                                }
+                                                return _buildDefaultAvatar(isPerson: displayUrl == teacherUrl);
+                                              },
+                                            )
+                                          : _buildDefaultAvatar(isPerson: teacherUrl != null);
+                                    }(),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
 
-                                // Admin / User Name & Verified Badge Inline
+                                // School Name & Verified Badge Inline
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.person_outline_rounded,
-                                            size: (profileNameFontSize * 1.05).clamp(14.0, 17.5),
-                                            color: const Color(0xFF64748B),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text.rich(
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text: data.teacher.name,
-                                                    style: TextStyle(
-                                                      fontSize: profileNameFontSize,
-                                                      fontWeight: FontWeight.bold,
-                                                      color: const Color(0xFF0F172A),
-                                                    ),
-                                                  ),
-                                                  WidgetSpan(
-                                                    alignment: PlaceholderAlignment.middle,
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.only(left: 5),
-                                                      child: Image(
-                                                        image: const AssetImage('assets/images/verified_badge.png'),
-                                                        width: (profileNameFontSize * 0.95).clamp(13.0, 15.5),
-                                                        height: (profileNameFontSize * 0.95).clamp(13.0, 15.5),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
+                                      Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            TextSpan(
+                                              text: data.school.schoolName,
+                                              style: TextStyle(
+                                                fontSize: profileNameFontSize,
+                                                fontWeight: FontWeight.bold,
+                                                color: const Color(0xFF0F172A),
                                               ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                          ),
-                                        ],
+                                            WidgetSpan(
+                                              alignment: PlaceholderAlignment.middle,
+                                              child: Padding(
+                                                padding: const EdgeInsets.only(left: 5),
+                                                child: Image(
+                                                  image: const AssetImage('assets/images/verified_badge.png'),
+                                                  width: (profileNameFontSize * 0.95).clamp(13.0, 15.5),
+                                                  height: (profileNameFontSize * 0.95).clamp(13.0, 15.5),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ],
                                   ),
@@ -314,37 +320,50 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ),
 
-                            // 3. BOTTOM ROW: School Name & School ID Badge
+                            // 3. BOTTOM ROW: AIG Membership ID & School ID Badge
                             Row(
                               children: [
                                 Expanded(
-                                  child: Text.rich(
-                                    TextSpan(
-                                      children: [
-                                        TextSpan(
-                                          text: data.school.schoolName,
-                                          style: TextStyle(
-                                            fontSize: schoolNameFontSize,
-                                            fontWeight: FontWeight.w700,
-                                            color: const Color(0xFF475569),
-                                            height: 1.2,
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.card_membership_rounded,
+                                        size: (schoolNameFontSize * 1.15).clamp(14.0, 17.0),
+                                        color: const Color(0xFF64748B),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text.rich(
+                                          TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: "AIG MEMO NO - ",
+                                                style: TextStyle(
+                                                  fontSize: schoolNameFontSize,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: const Color(0xFF64748B),
+                                                  height: 1.2,
+                                                ),
+                                              ),
+                                              TextSpan(
+                                                text: data.school.aigMembershipId.isNotEmpty
+                                                    ? data.school.aigMembershipId
+                                                    : 'N/A',
+                                                style: TextStyle(
+                                                  fontSize: schoolNameFontSize,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: const Color(0xFF475569),
+                                                  height: 1.2,
+                                                ),
+                                              ),
+                                            ],
                                           ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        WidgetSpan(
-                                          alignment: PlaceholderAlignment.middle,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 5),
-                                            child: Image(
-                                              image: const AssetImage('assets/images/verified_badge.png'),
-                                              width: (schoolNameFontSize * 1.1).clamp(13.0, 15.5),
-                                              height: (schoolNameFontSize * 1.1).clamp(13.0, 15.5),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -376,11 +395,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
-
                     // Statistics Card (Total Students & Total Teachers)
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         decoration: BoxDecoration(
@@ -508,43 +525,35 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
-
                     // Callback Requests Card
                     if (data.callbackRequests != null &&
-                        data.callbackRequests!.hasPendingOrInProgress) ...[
+                        data.callbackRequests!.hasPendingOrInProgress)
                       _buildCallbackRequestsCard(
                         context,
                         data.callbackRequests,
                         countFontSize: (statValueFontSize * 0.85).clamp(14.0, 17.0),
                         labelFontSize: statTitleFontSize,
                       ),
-                      const SizedBox(height: 10),
-                    ],
 
                     // Teacher Leaves Card
                     if (data.teacherLeaves != null &&
-                        data.teacherLeaves!.totalPendingCount > 0) ...[
+                        data.teacherLeaves!.totalPendingCount > 0)
                       _buildTeacherLeavesCard(
                         context,
                         data.teacherLeaves,
                         countFontSize: (statValueFontSize * 0.85).clamp(14.0, 17.0),
                         labelFontSize: statTitleFontSize,
                       ),
-                      const SizedBox(height: 10),
-                    ],
 
                     // Student Leaves Card
                     if (data.studentLeaves != null &&
-                        data.studentLeaves!.totalPendingCount > 0) ...[
+                        data.studentLeaves!.totalPendingCount > 0)
                       _buildStudentLeavesCard(
                         context,
                         data.studentLeaves,
                         countFontSize: (statValueFontSize * 0.85).clamp(14.0, 17.0),
                         labelFontSize: statTitleFontSize,
                       ),
-                      const SizedBox(height: 10),
-                    ],
 
                     // 1. Attendance Management Section
                     _buildSectionCard(
@@ -651,8 +660,6 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 2. Academic Management Section
                     _buildSectionCard(
                       title: "Academic Management",
@@ -693,8 +700,6 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 3. Admission Management Section
                     _buildSectionCard(
                       title: "Admission Management",
@@ -719,8 +724,6 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 12),
 
                     // 4. Exam Management Section
                     _buildSectionCard(
@@ -807,8 +810,6 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 5. Communication Management Section
                     _buildSectionCard(
                       title: "Communication Management",
@@ -880,8 +881,6 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 6. Finance Management Section
                     _buildSectionCard(
                       title: "Finance Management",
@@ -906,8 +905,6 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 12),
 
                     // 7. AIG Portal Section
                     _buildSectionCard(
@@ -976,8 +973,6 @@ class DashboardScreen extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 8. Administration & Services Section
                     _buildSectionCard(
                       title: "Administration & Services",
@@ -997,6 +992,21 @@ class DashboardScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => const StudentCountScreen()),
+                            );
+                          },
+                        ),
+
+                        // 2. Transport
+                        _buildGridCard(
+                          icon: Icons.directions_bus_rounded,
+                          color: const Color(0xFFD97706), // Amber/Orange
+                          circleBgColor: const Color(0xFFFEF3C7),
+                          title: "Transport",
+                          titleFontSize: gridCardTitleFontSize,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const TransportScreen()),
                             );
                           },
                         ),
@@ -1021,7 +1031,7 @@ class DashboardScreen extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -1139,7 +1149,7 @@ class DashboardScreen extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -1237,7 +1247,7 @@ class DashboardScreen extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -1395,7 +1405,7 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return RepaintBoundary(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.only(left: 12, right: 12, bottom: 10),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
           decoration: BoxDecoration(
@@ -1457,7 +1467,7 @@ class DashboardScreen extends StatelessWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 3,
                 crossAxisSpacing: 6,
-                mainAxisSpacing: 8,
+                mainAxisSpacing: 10,
                 childAspectRatio: childAspectRatio,
                 children: children,
               ),
@@ -1468,14 +1478,14 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDefaultAvatar() {
+  Widget _buildDefaultAvatar({bool isPerson = false}) {
     return Container(
-      color: const Color(0xFFE2E8F0),
-      child: const Center(
+      color: isPerson ? const Color(0xFFEDE9FE) : const Color(0xFFE2E8F0),
+      child: Center(
         child: Icon(
-          Icons.school_rounded,
-          size: 40,
-          color: Color(0xFF94A3B8),
+          isPerson ? Icons.person_rounded : Icons.school_rounded,
+          size: isPerson ? 32 : 38,
+          color: isPerson ? const Color(0xFF6366F1) : const Color(0xFF94A3B8),
         ),
       ),
     );
@@ -1583,12 +1593,15 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShimmerLoading() {
+  Widget _buildShimmerLoading(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double gridCardAspectRatio = ((screenWidth - 32 - 12) / 3 / 96).clamp(0.96, 1.20);
+
     return SafeArea(
       bottom: false,
       child: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1774,7 +1787,7 @@ class DashboardScreen extends StatelessWidget {
           ...List.generate(
             2,
             (sectionIndex) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 10),
               child: Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -1805,8 +1818,8 @@ class DashboardScreen extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: 3,
                       crossAxisSpacing: 6,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 1.20,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: gridCardAspectRatio,
                       children: List.generate(
                         3,
                         (index) => Container(
@@ -2004,696 +2017,3 @@ class _BlinkingBadgeState extends State<BlinkingBadge> with SingleTickerProvider
     );
   }
 }
-
-/*
-// ==========================================
-// PREVIOUS DASHBOARD IMPLEMENTATION (COMMENTED)
-// ==========================================
-
-class _OldDashboardScreenBackup extends StatelessWidget {
-  const _OldDashboardScreenBackup({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final DashboardController controller = Get.find<DashboardController>();
-    final MeetingController meetingController = Get.put(MeetingController());
-    final DeadlinesController deadlinesController = Get.put(DeadlinesController());
-    final StudentAttendanceController studentAttendanceController = Get.put(StudentAttendanceController());
-    final TeacherAttendanceController teacherAttendanceController = Get.put(TeacherAttendanceController());
-    final AnnouncementController announcementController = Get.put(AnnouncementController());
-    final BannerController bannerController = Get.put(BannerController());
-    final InvigilatorDutyController invigilatorDutyController = Get.put(InvigilatorDutyController());
-
-    return Container(
-      decoration: AppColors.screenDecoration,
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-        body: Obx(() {
-          if (controller.isLoading.value) {
-            return _buildOldShimmerLoading();
-          }
-
-          final data = controller.dashboardData.value;
-          if (data == null) {
-            return const Center(child: Text("No data available"));
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              await controller.fetchDashboardData();
-              await meetingController.fetchMeetings();
-              await deadlinesController.fetchDeadlines();
-              await studentAttendanceController.fetchAttendanceSummary();
-              await teacherAttendanceController.fetchAttendanceSummary();
-              await announcementController.fetchAnnouncements();
-              await bannerController.fetchBanners();
-              await invigilatorDutyController.fetchDuties();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _getOldGreeting(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 2),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  data.teacher.name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Image.asset(
-                                'assets/images/verified_badge.png',
-                                width: 18,
-                                height: 18,
-                                fit: BoxFit.contain,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        // School Logo & Name Section
-                        Center(
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  border: Border.all(color: const Color(0xFF0038A8).withOpacity(0.1), width: 2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipOval(
-                                  child: data.school.logo != null && data.school.logo!.isNotEmpty
-                                      ? Image.network(
-                                          data.school.logo!,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => const Center(
-                                            child: Icon(
-                                              Icons.school_rounded,
-                                              size: 40,
-                                              color: Color(0xFF0038A8),
-                                            ),
-                                          ),
-                                        )
-                                      : const Center(
-                                          child: Icon(
-                                            Icons.school_rounded,
-                                            size: 40,
-                                            color: Color(0xFF0038A8),
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      data.school.schoolName,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Image.asset(
-                                    'assets/images/verified_badge.png',
-                                    width: 19,
-                                    height: 19,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "ID: ${data.school.schoolCode}",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Statistics Section
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0).withOpacity(0.6),
-                              width: 1,
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF6366F1).withOpacity(0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.people_alt_rounded,
-                                          color: Color(0xFF6366F1),
-                                          size: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          alignment: Alignment.centerLeft,
-                                          child: Row(
-                                            children: [
-                                              const Text(
-                                                "Total Students",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF64748B),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                data.totalActiveStudents.toString(),
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF1E293B),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  height: 32,
-                                  width: 1,
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      const SizedBox(width: 12),
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF10B981).withOpacity(0.1),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.school_rounded,
-                                          color: Color(0xFF10B981),
-                                          size: 12,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          alignment: Alignment.centerLeft,
-                                          child: Row(
-                                            children: [
-                                              const Text(
-                                                "Total Teachers",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF64748B),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Text(
-                                                data.totalActiveTeachers.toString(),
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF1E293B),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        // School Modules Section
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0).withOpacity(0.6),
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 15,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              GridView.count(
-                                shrinkWrap: true,
-                                padding: EdgeInsets.zero,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 15,
-                                mainAxisSpacing: 15,
-                                childAspectRatio: 0.63,
-                                children: [
-                                  Obx(() {
-                                    final count = announcementController.totalAnnouncements;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.campaign_rounded,
-                                      color: const Color(0xFF0EA5E9),
-                                      title: "Announcement",
-                                      badgeCount: count > 0 ? count : null,
-                                      badgeColor: const Color(0xFFEF4444),
-                                      isBlinking: false,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const AnnouncementScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  Obx(() {
-                                    final todayCount = meetingController.todayOngoingMeetings.length;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.groups_rounded,
-                                      color: const Color(0xFF10B981),
-                                      title: "Meetings",
-                                      badgeCount: todayCount > 0 ? todayCount : null,
-                                      badgeColor: const Color(0xFF10B981),
-                                      isBlinking: true,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => MeetingScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  Obx(() {
-                                    final upcomingDeadlinesCount = deadlinesController.deadlinesList.where((d) => (d.daysRemaining ?? 0) >= 0).length;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.event_available_rounded,
-                                      color: const Color(0xFFF59E0B),
-                                      title: "Deadlines",
-                                      badgeCount: upcomingDeadlinesCount > 0 ? upcomingDeadlinesCount : null,
-                                      badgeColor: const Color(0xFFEF4444),
-                                      isBlinking: false,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const DeadlinesScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  Obx(() {
-                                    final count = bannerController.totalBanners;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.view_carousel_rounded,
-                                      color: const Color(0xFFF43F5E),
-                                      title: "Banners",
-                                      badgeCount: count > 0 ? count : null,
-                                      badgeColor: const Color(0xFFEF4444),
-                                      isBlinking: false,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const BannerScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.account_balance_wallet_rounded,
-                                    color: const Color(0xFF3B82F6),
-                                    title: "Billing",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const BillingScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.assessment_rounded,
-                                    color: const Color(0xFFF59E0B),
-                                    title: "Assets Report",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const AssetsReport()),
-                                      );
-                                    },
-                                  ),
-                                  Obx(() {
-                                    final unread = studentAttendanceController.unreadCount.value;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.assignment_ind_rounded,
-                                      color: const Color(0xFF6366F1),
-                                      title: "Student Attendance",
-                                      badgeCount: unread > 0 ? unread : null,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const StudentAttendanceReportScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  Obx(() {
-                                    final unread = teacherAttendanceController.unreadCount.value;
-                                    return _buildOldGridMenuItem(
-                                      icon: Icons.supervisor_account_rounded,
-                                      color: const Color(0xFF06B6D4),
-                                      title: "Teacher Attendance",
-                                      badgeCount: unread > 0 ? unread : null,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => const TeacherAttendanceReportScreen()),
-                                        );
-                                      },
-                                    );
-                                  }),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.edit_note_rounded,
-                                    color: const Color(0xFFF43F5E),
-                                    title: "Marks Report",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const MarksEntryScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.emoji_events_rounded,
-                                    color: const Color(0xFF8B5CF6),
-                                    title: "Exam Result",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const ExamResultScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.home_work_rounded,
-                                    color: const Color(0xFF4F46E5),
-                                    title: "Homework",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const HomeworkScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.bar_chart_rounded,
-                                    color: const Color(0xFF0EA5E9),
-                                    title: "Student Count",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const StudentCountScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _buildOldGridMenuItem(
-                                    icon: Icons.group_add_rounded,
-                                    color: const Color(0xFF7C3AED),
-                                    title: "Admission",
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => const AdmissionScreen()),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-        ),
-      ),
-    );
-  }
-
-  String _getOldGreeting() {
-    var hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning 🙏';
-    if (hour < 17) return 'Good Afternoon 🙏';
-    return 'Good Evening 🙏';
-  }
-
-  Widget _buildOldGridMenuItem({
-    required IconData icon,
-    required Color color,
-    required String title,
-    VoidCallback? onTap,
-    int? badgeCount,
-    Color? badgeColor,
-    bool isBlinking = true,
-  }) {
-    Widget badge = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: badgeColor ?? Colors.red,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white, width: 1.5),
-      ),
-      constraints: const BoxConstraints(
-        minWidth: 18,
-        minHeight: 18,
-      ),
-      child: Center(
-        child: Text(
-          badgeCount?.toString() ?? "",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: color.withOpacity(0.18),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(icon, color: color, size: 24),
-                  ),
-                ),
-                if (badgeCount != null && badgeCount > 0)
-                  Positioned(
-                    top: -15,
-                    right: -8,
-                    child: isBlinking ? BlinkingBadge(child: badge) : badge,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: color.withOpacity(0.9),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOldShimmerLoading() {
-    return SingleChildScrollView(
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 10),
-          const CustomShimmer.circular(width: 80, height: 80),
-          const SizedBox(height: 10),
-          const CustomShimmer.rectangular(height: 20, width: 200),
-          const SizedBox(height: 15),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Row(
-              children: [
-                CustomShimmer.circular(width: 50, height: 50),
-                SizedBox(width: 15),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomShimmer.rectangular(height: 16, width: 120),
-                    SizedBox(height: 8),
-                    CustomShimmer.rectangular(height: 12, width: 80),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 25),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 3,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 15,
-            childAspectRatio: 0.63,
-            children: List.generate(
-              12,
-              (index) => Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomShimmer.circular(width: 32, height: 32),
-                    SizedBox(height: 10),
-                    CustomShimmer.rectangular(height: 12, width: 60),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/

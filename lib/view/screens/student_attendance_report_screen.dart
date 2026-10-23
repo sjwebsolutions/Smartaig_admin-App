@@ -54,7 +54,7 @@ class StudentAttendanceReportScreen extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () => controller.fetchAttendanceSummary(),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,43 +134,156 @@ class StudentAttendanceReportScreen extends StatelessWidget {
   }
 
   Widget _buildSummaryGrid(AttendanceStats stats) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 2.1,
+    return Column(
       children: [
-        _buildStatBox(
-          label: "Total Students",
-          value: stats.totalStudents.toString(),
-          icon: Icons.people_alt_rounded,
-          color: const Color(0xFF6366F1),
-          bgColor: const Color(0xFFEDE9FE),
-        ),
-        _buildStatBox(
-          label: "Present Today",
-          value: stats.presentToday.toString(),
-          icon: Icons.check_circle_rounded,
-          color: const Color(0xFF10B981),
-          bgColor: const Color(0xFFD1FAE5),
-        ),
-        _buildStatBox(
-          label: "Absent Today",
-          value: stats.absentToday.toString(),
-          icon: Icons.cancel_rounded,
-          color: const Color(0xFFEF4444),
-          bgColor: const Color(0xFFFEE2E2),
-        ),
-        _buildStatBox(
-          label: "On Leave",
-          value: stats.leaveToday.toString(),
-          icon: Icons.event_busy_rounded,
-          color: const Color(0xFFF59E0B),
-          bgColor: const Color(0xFFFEF3C7),
+        _buildTotalStudentsCard(stats.totalStudents, stats.activeStudents),
+        const SizedBox(height: 10),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 2.1,
+          children: [
+            _buildStatBox(
+              label: "Active Students",
+              value: stats.activeStudents.toString(),
+              icon: Icons.person_search_rounded,
+              color: const Color(0xFF6366F1),
+              bgColor: const Color(0xFFEDE9FE),
+            ),
+            _buildStatBox(
+              label: "Present Today",
+              value: stats.presentToday.toString(),
+              icon: Icons.check_circle_rounded,
+              color: const Color(0xFF10B981),
+              bgColor: const Color(0xFFD1FAE5),
+            ),
+            _buildStatBox(
+              label: "Absent Today",
+              value: stats.absentToday.toString(),
+              icon: Icons.cancel_rounded,
+              color: const Color(0xFFEF4444),
+              bgColor: const Color(0xFFFEE2E2),
+            ),
+            _buildStatBox(
+              label: "On Leave",
+              value: stats.leaveToday.toString(),
+              icon: Icons.event_busy_rounded,
+              color: const Color(0xFFF59E0B),
+              bgColor: const Color(0xFFFEF3C7),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _buildTotalStudentsCard(int totalStudents, int activeStudents) {
+    double activePercentage = totalStudents > 0 ? (activeStudents / totalStudents) * 100 : 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.cardColor,
+        borderRadius: AppColors.cardBorderRadius,
+        border: Border.all(
+          color: Colors.white,
+          width: 1.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF90A4AE).withValues(alpha: 0.12),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE9FE),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFDDD6FE),
+                width: 1.2,
+              ),
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.groups_rounded,
+                color: Color(0xFF6366F1),
+                size: 25,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Total Enrolled Students",
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  totalStudents.toString(),
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDE9FE),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: const Color(0xFFC7D2FE),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "$activeStudents Active",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6366F1),
+                  ),
+                ),
+                Text(
+                  "${activePercentage.toStringAsFixed(0)}% of total",
+                  style: const TextStyle(
+                    fontSize: 9.5,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -182,7 +295,7 @@ class StudentAttendanceReportScreen extends StatelessWidget {
     required Color bgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: AppColors.cardColor,
         borderRadius: AppColors.cardBorderRadius,
@@ -194,7 +307,7 @@ class StudentAttendanceReportScreen extends StatelessWidget {
           BoxShadow(
             color: const Color(0xFF90A4AE).withValues(alpha: 0.10),
             blurRadius: 16,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -220,7 +333,7 @@ class StudentAttendanceReportScreen extends StatelessWidget {
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: color,
                     height: 1,
@@ -439,13 +552,41 @@ class StudentAttendanceReportScreen extends StatelessWidget {
 
   Widget _buildShimmerLoading() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 4),
             child: CustomShimmer.rectangular(height: 16, width: 140),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.cardColor,
+              borderRadius: AppColors.cardBorderRadius,
+              border: Border.all(
+                color: Colors.white,
+                width: 1.8,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: const Row(
+              children: [
+                CustomShimmer.circular(width: 42, height: 42),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomShimmer.rectangular(height: 11, width: 80),
+                      SizedBox(height: 4),
+                      CustomShimmer.rectangular(height: 18, width: 45),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           GridView.count(

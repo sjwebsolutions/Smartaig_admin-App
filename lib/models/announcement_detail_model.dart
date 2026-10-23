@@ -34,6 +34,7 @@ class AnnouncementDetail {
   final String publishStatus;
   final int sendToParents;
   final int sendToTeachers;
+  final int sendToSupportCrew;
 
   AnnouncementDetail({
     required this.id,
@@ -51,6 +52,7 @@ class AnnouncementDetail {
     required this.publishStatus,
     required this.sendToParents,
     required this.sendToTeachers,
+    this.sendToSupportCrew = 0,
   });
 
   factory AnnouncementDetail.fromJson(Map<String, dynamic> json) {
@@ -70,6 +72,7 @@ class AnnouncementDetail {
       publishStatus: json['publish_status'] ?? '',
       sendToParents: json['send_to_parents'] ?? 0,
       sendToTeachers: json['send_to_teachers'] ?? 0,
+      sendToSupportCrew: json['send_to_support_crew'] ?? 0,
     );
   }
 
@@ -90,6 +93,7 @@ class AnnouncementDetail {
       'publish_status': publishStatus,
       'send_to_parents': sendToParents,
       'send_to_teachers': sendToTeachers,
+      'send_to_support_crew': sendToSupportCrew,
     };
   }
 }

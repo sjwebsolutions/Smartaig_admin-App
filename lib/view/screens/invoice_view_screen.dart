@@ -88,7 +88,7 @@ class _InvoiceViewScreenState extends State<InvoiceViewScreen> {
             // Current page / status pill
             if (_isReady && _totalPages > 0)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

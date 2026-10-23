@@ -65,7 +65,7 @@ class _StudentLeaveScreenState extends State<StudentLeaveScreen> {
               onRefresh: () => controller.fetchStudentLeaves(showLoading: false),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 children: [
                   // 1. Summary Statistics Header
                   _buildSummaryHeader(),

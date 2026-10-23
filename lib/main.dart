@@ -8,68 +8,85 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
 import 'package:smart_aig_admins_app/view/screens/splash_screen.dart';
 import 'package:smart_aig_admins_app/services/notification_service.dart';
+import 'package:smart_aig_admins_app/view_models/getX/notification_controller.dart';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
+  try {
+    await Firebase.initializeApp();
+    final FlutterLocalNotificationsPlugin localNotifications = FlutterLocalNotificationsPlugin();
 
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'callback_notification_channel',
-    'Callback & Alert Notifications',
-    description: 'Channel for callback requests and urgent admin alerts',
-    importance: Importance.max,
-    playSound: true,
-    enableVibration: true,
-    enableLights: true,
-    showBadge: true,
-  );
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    await localNotifications.initialize(initSettings);
 
-  await localNotifications
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'callback_notification_channel',
+      'Callback & Alert Notifications',
+      description: 'Channel for callback requests and urgent admin alerts',
+      importance: Importance.max,
+      playSound: true,
+      enableVibration: true,
+      enableLights: true,
+      showBadge: true,
+    );
 
-  RemoteNotification? notification = message.notification;
+    await localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
 
-  String title = notification?.title ?? 
-      message.data['title'] ?? 
-      message.data['heading'] ?? 
-      message.data['subject'] ?? 
-      'Callback Request';
+    RemoteNotification? notification = message.notification;
 
-  String body = notification?.body ?? 
-      message.data['body'] ?? 
-      message.data['message'] ?? 
-      message.data['content'] ?? 
-      message.data['reason'] ?? 
-      'New callback request received.';
+    String title = notification?.title ?? 
+        message.data['title'] ?? 
+        message.data['heading'] ?? 
+        message.data['subject'] ?? 
+        'Callback Request';
 
-  await localNotifications.show(
-    notification?.hashCode ?? DateTime.now().millisecondsSinceEpoch.remainder(100000),
-    title,
-    body,
-    NotificationDetails(
-      android: AndroidNotificationDetails(
-        channel.id,
-        channel.name,
-        channelDescription: channel.description,
-        importance: Importance.max,
-        priority: Priority.max,
-        playSound: true,
-        enableVibration: true,
-        icon: '@mipmap/ic_launcher',
-        styleInformation: const BigTextStyleInformation(''),
+    String body = notification?.body ?? 
+        message.data['body'] ?? 
+        message.data['message'] ?? 
+        message.data['content'] ?? 
+        message.data['reason'] ?? 
+        'New callback request received.';
+
+    int notificationId = DateTime.now().microsecondsSinceEpoch.remainder(1000000).abs();
+    if (notificationId == 0) notificationId = 1;
+
+    await localNotifications.show(
+      notificationId,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          channel.id,
+          channel.name,
+          channelDescription: channel.description,
+          importance: Importance.max,
+          priority: Priority.max,
+          visibility: NotificationVisibility.public,
+          playSound: true,
+          enableVibration: true,
+          icon: '@mipmap/ic_launcher',
+          styleInformation: const BigTextStyleInformation(''),
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'default',
+        ),
       ),
-      iOS: const DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-        sound: 'default',
-      ),
-    ),
-  );
+    );
+  } catch (e) {
+    debugPrint("Background notification error: $e");
+  }
 }
 
 void main() async {
@@ -101,6 +118,7 @@ void main() async {
     // Initialize Notification Service synchronously
     try {
       await Get.putAsync(() => NotificationService().init());
+      Get.put(NotificationController(), permanent: true);
     } catch (e) {
       debugPrint("NotificationService init error: $e");
     }

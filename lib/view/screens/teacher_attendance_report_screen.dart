@@ -55,7 +55,7 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () => controller.fetchAttendanceSummary(),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -447,7 +447,7 @@ class TeacherAttendanceReportScreen extends StatelessWidget {
 
   Widget _buildShimmerLoading() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

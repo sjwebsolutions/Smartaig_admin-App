@@ -66,7 +66,7 @@ class AnnouncementScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchAnnouncements(),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               itemCount: controller.announcements.length,
               itemBuilder: (context, index) {
                 final announcement = controller.announcements[index];
@@ -451,6 +451,7 @@ class AnnouncementScreen extends StatelessWidget {
                                                               announcement.id,
                                                               sendToParents: 1,
                                                               sendToTeachers: 0,
+                                                              sendToSupportCrew: 0,
                                                             );
                                                       },
                                                     ),
@@ -465,13 +466,29 @@ class AnnouncementScreen extends StatelessWidget {
                                                               announcement.id,
                                                               sendToParents: 0,
                                                               sendToTeachers: 1,
+                                                              sendToSupportCrew: 0,
+                                                            );
+                                                      },
+                                                    ),
+                                                    _buildPublishOption(
+                                                      icon: Icons.support_agent_outlined,
+                                                      title: "Support Crew Only",
+                                                      color: Colors.teal,
+                                                      onTap: () {
+                                                        Get.back();
+                                                        controller
+                                                            .publishAnnouncement(
+                                                              announcement.id,
+                                                              sendToParents: 0,
+                                                              sendToTeachers: 0,
+                                                              sendToSupportCrew: 1,
                                                             );
                                                       },
                                                     ),
                                                     _buildPublishOption(
                                                       icon: Icons.group_outlined,
                                                       title:
-                                                          "Both Parents & Teachers",
+                                                          "Parents & Teachers",
                                                       color: Colors.indigo,
                                                       onTap: () {
                                                         Get.back();
@@ -480,6 +497,23 @@ class AnnouncementScreen extends StatelessWidget {
                                                               announcement.id,
                                                               sendToParents: 1,
                                                               sendToTeachers: 1,
+                                                              sendToSupportCrew: 0,
+                                                            );
+                                                      },
+                                                    ),
+                                                    _buildPublishOption(
+                                                      icon: Icons.groups_outlined,
+                                                      title:
+                                                          "All (Parents, Teachers & Support Crew)",
+                                                      color: Colors.purple,
+                                                      onTap: () {
+                                                        Get.back();
+                                                        controller
+                                                            .publishAnnouncement(
+                                                              announcement.id,
+                                                              sendToParents: 1,
+                                                              sendToTeachers: 1,
+                                                              sendToSupportCrew: 1,
                                                             );
                                                       },
                                                     ),

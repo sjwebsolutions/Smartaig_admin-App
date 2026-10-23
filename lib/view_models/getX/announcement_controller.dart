@@ -301,9 +301,19 @@ class AnnouncementController extends GetxController {
     }
   }
 
-  Future<void> publishAnnouncement(int id, {required int sendToParents, required int sendToTeachers}) async {
+  Future<void> publishAnnouncement(
+    int id, {
+    required int sendToParents,
+    required int sendToTeachers,
+    int sendToSupportCrew = 0,
+  }) async {
     try {
-      final response = await _service.publishAnnouncement(id, sendToParents: sendToParents, sendToTeachers: sendToTeachers);
+      final response = await _service.publishAnnouncement(
+        id,
+        sendToParents: sendToParents,
+        sendToTeachers: sendToTeachers,
+        sendToSupportCrew: sendToSupportCrew,
+      );
       if (response['success'] == true) {
         CustomSnackBar.showSuccess(
           "Success",

@@ -19,6 +19,7 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
 
   late bool _audienceParents;
   late bool _audienceTeachers;
+  late bool _audienceSupportCrew;
   late String _targetType;
   late TextEditingController _daysController;
   final List<int> _selectedClassIds = [];
@@ -29,6 +30,9 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
     // Initialize with existing banner data
     _audienceParents = widget.banner.targetedAudiences.contains('Parents');
     _audienceTeachers = widget.banner.targetedAudiences.contains('Teachers');
+    _audienceSupportCrew = widget.banner.targetedAudiences.contains('Support Crew') ||
+        widget.banner.targetedAudiences.contains('SupportCrew') ||
+        widget.banner.targetedAudiences.contains('Support Crew App');
     _targetType = widget.banner.targetType.toLowerCase() == 'specific'
         ? 'specific'
         : 'all';
@@ -54,7 +58,7 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
 
-    if (!_audienceParents && !_audienceTeachers) {
+    if (!_audienceParents && !_audienceTeachers && !_audienceSupportCrew) {
       CustomSnackBar.showError(
         "Error",
         "Please select at least one audience",
@@ -74,6 +78,7 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
       id: widget.banner.id,
       audienceParents: _audienceParents ? 1 : 0,
       audienceTeachers: _audienceTeachers ? 1 : 0,
+      audienceSupportCrew: _audienceSupportCrew ? 1 : 0,
       targetType: _targetType,
       classIds: _targetType == 'specific' ? _selectedClassIds : null,
       displayDays: int.tryParse(_daysController.text) ?? 0,
@@ -198,24 +203,42 @@ class _PublishBannerScreenState extends State<PublishBannerScreen> {
                       horizontal: 4,
                       vertical: 8,
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: _buildCheckboxTile(
-                            title: "Parents",
-                            value: _audienceParents,
-                            onChanged: (val) =>
-                                setState(() => _audienceParents = val ?? false),
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildCheckboxTile(
-                            title: "Teachers",
-                            value: _audienceTeachers,
-                            onChanged: (val) => setState(
-                              () => _audienceTeachers = val ?? false,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildCheckboxTile(
+                                title: "Parents",
+                                value: _audienceParents,
+                                onChanged: (val) =>
+                                    setState(() => _audienceParents = val ?? false),
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: _buildCheckboxTile(
+                                title: "Teachers",
+                                value: _audienceTeachers,
+                                onChanged: (val) => setState(
+                                  () => _audienceTeachers = val ?? false,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildCheckboxTile(
+                                title: "Support Crew",
+                                value: _audienceSupportCrew,
+                                onChanged: (val) => setState(
+                                  () => _audienceSupportCrew = val ?? false,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: SizedBox()),
+                          ],
                         ),
                       ],
                     ),

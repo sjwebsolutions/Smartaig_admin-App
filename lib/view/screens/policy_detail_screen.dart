@@ -33,7 +33,7 @@ class PolicyDetailScreen extends StatelessWidget {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
+              horizontal: 12.0,
               vertical: 10.0,
             ),
             child: TweenAnimationBuilder<double>(

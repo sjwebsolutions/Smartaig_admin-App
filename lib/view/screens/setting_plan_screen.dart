@@ -41,7 +41,7 @@ class SettingPlanScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchPlans(),
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               children: [
                 // 1. Hero Overview Stats Card
                 _buildHeroStats(controller.plans),

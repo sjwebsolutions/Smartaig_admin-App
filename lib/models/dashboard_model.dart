@@ -39,6 +39,30 @@ class UserModel {
     this.experience,
   });
 
+  bool get hasUploadedImage {
+    final img = image.isNotEmpty ? image : thumbnail;
+    if (img.trim().isEmpty) return false;
+    if (img.contains('default_thumbnail') || img.contains('default_avatar') || img.contains('default.jpg') || img.contains('default.jpeg') || img.contains('default.png')) {
+      return false;
+    }
+    return true;
+  }
+
+  String? get uploadedProfileImageUrl {
+    if (!hasUploadedImage) return null;
+    return profileImageUrl;
+  }
+
+  String get profileImageUrl {
+    final img = image.isNotEmpty ? image : thumbnail;
+    if (img.trim().isEmpty) return '';
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    final cleanPath = img.startsWith('/') ? img.substring(1) : img;
+    return 'https://smartaig.com/$cleanPath';
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     int parseToInt(dynamic val) {
       if (val is int) return val;
@@ -46,6 +70,22 @@ class UserModel {
       if (val is String) return int.tryParse(val) ?? 0;
       return 0;
     }
+
+    final String parsedImage = json['image']?.toString() ??
+        json['profile_image']?.toString() ??
+        json['profile_image_url']?.toString() ??
+        json['avatar']?.toString() ??
+        json['teacher_avatar']?.toString() ??
+        json['photo']?.toString() ??
+        json['teacher_image']?.toString() ??
+        json['user_image']?.toString() ??
+        json['picture']?.toString() ??
+        json['profile_picture']?.toString() ??
+        '';
+
+    final String parsedThumbnail = json['thumbnail']?.toString() ??
+        json['thumb']?.toString() ??
+        parsedImage;
 
     return UserModel(
       id: parseToInt(json['id']),
@@ -59,8 +99,8 @@ class UserModel {
       gender: json['gender']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       dob: json['dob']?.toString(),
-      image: json['image']?.toString() ?? '',
-      thumbnail: json['thumbnail']?.toString() ?? '',
+      image: parsedImage,
+      thumbnail: parsedThumbnail,
       address: json['address']?.toString(),
       district: json['district']?.toString(),
       state: json['state']?.toString(),
@@ -110,6 +150,15 @@ class SchoolModel {
     this.logo,
   });
 
+  String? get formattedLogo {
+    if (logo == null || logo!.trim().isEmpty) return null;
+    if (logo!.startsWith('http://') || logo!.startsWith('https://')) {
+      return logo;
+    }
+    final cleanPath = logo!.startsWith('/') ? logo!.substring(1) : logo;
+    return 'https://smartaig.com/$cleanPath';
+  }
+
   factory SchoolModel.fromJson(Map<String, dynamic> json) {
     int parseToInt(dynamic val) {
       if (val is int) return val;
@@ -118,13 +167,18 @@ class SchoolModel {
       return 0;
     }
 
+    final String? parsedLogo = json['logo']?.toString() ??
+        json['school_logo']?.toString() ??
+        json['logo_url']?.toString() ??
+        json['image']?.toString();
+
     return SchoolModel(
       id: parseToInt(json['id']),
       schoolName: json['school_name']?.toString() ?? '',
       schoolCode: json['school_code']?.toString() ?? '',
       aigMembershipId: json['aig_membership_id']?.toString() ?? '',
       validityTill: json['validity_till']?.toString() ?? '',
-      logo: json['logo']?.toString(),
+      logo: parsedLogo,
     );
   }
 

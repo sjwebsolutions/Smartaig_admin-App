@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/auth_response_model.dart';
 import 'package:smart_aig_admins_app/models/dashboard_model.dart';
 import 'package:smart_aig_admins_app/models/billing_model.dart';
+import 'package:smart_aig_admins_app/services/notification_service.dart';
 
 import '../view/screens/auth/login_screen.dart';
 import '../utils/custom_snackbar.dart';
@@ -219,15 +220,19 @@ class AuthService {
 
     // Sync FCM token with server in background safely
     try {
-      FirebaseMessaging.instance.getToken().then((fcmToken) {
-        if (fcmToken != null && fcmToken.isNotEmpty) {
-          updateFcmTokenOnServer(fcmToken);
-        }
-      }).catchError((e) {
-        if (kDebugMode) {
-          debugPrint("FCM token sync error in getDashboardData: $e");
-        }
-      });
+      if (Get.isRegistered<NotificationService>()) {
+        NotificationService.to.syncFcmTokenAndSubscriptions();
+      } else {
+        FirebaseMessaging.instance.getToken().then((fcmToken) {
+          if (fcmToken != null && fcmToken.isNotEmpty) {
+            updateFcmTokenOnServer(fcmToken);
+          }
+        }).catchError((e) {
+          if (kDebugMode) {
+            debugPrint("FCM token sync error in getDashboardData: $e");
+          }
+        });
+      }
     } catch (e) {
       if (kDebugMode) {
         debugPrint("FCM instance error in getDashboardData: $e");
