@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/exam_result_classes_controller.dart';
 import 'package:smart_aig_admins_app/models/exam_result_classes_model.dart';
+import 'package:smart_aig_admins_app/view/screens/exam_result_details_screen.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class ExamResultClassesScreen extends StatelessWidget {
@@ -31,21 +32,9 @@ class ExamResultClassesScreen extends StatelessWidget {
           elevation: 0,
           centerTitle: AppColors.appBarCenterTitle,
           leading: const CustomBackButton(),
-          title: Column(
-            children: [
-              const Text(
-                "SELECT CLASS",
-                style: AppColors.appBarTitleStyle,
-              ),
-              Text(
-                examTitle,
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+          title: const Text(
+            "SELECT CLASS",
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -83,7 +72,7 @@ class ExamResultClassesScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchClasses(),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               itemCount: controller.classList.length,
               itemBuilder: (context, index) {
                 final classData = controller.classList[index];
@@ -115,7 +104,17 @@ class ExamResultClassesScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            // Next Step: Handle class selection for Results
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExamResultDetailsScreen(
+                  examId: examId,
+                  classId: classData.id,
+                  className: classData.name,
+                  examTitle: examTitle,
+                ),
+              ),
+            );
           },
           borderRadius: AppColors.cardBorderRadius,
           child: Padding(

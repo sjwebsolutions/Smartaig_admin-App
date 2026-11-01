@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../models/announcement_model.dart';
 import '../../view_models/getX/announcement_controller.dart';
-import 'add_announcement_screen.dart';
 import '../../utils/app_colors.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
   final int id;
-  const AnnouncementDetailScreen({super.key, required this.id});
+  final Announcement? announcement;
+
+  const AnnouncementDetailScreen({
+    super.key,
+    required this.id,
+    this.announcement,
+  });
 
   @override
   State<AnnouncementDetailScreen> createState() =>
@@ -42,12 +48,15 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ),
         ),
         body: Obx(() {
-          if (controller.isLoadingDetails.value) {
+          final detail = controller.announcementDetail.value;
+          final fallback = widget.announcement ??
+              controller.announcements.firstWhereOrNull((a) => a.id == widget.id);
+
+          if (controller.isLoadingDetails.value && detail == null && fallback == null) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final detail = controller.announcementDetail.value;
-          if (detail == null) {
+          if (detail == null && fallback == null) {
             return const Center(
               child: Text(
                 "No details found",
@@ -55,6 +64,21 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ),
             );
           }
+
+          final String title = detail?.title ?? fallback?.title ?? "";
+          final String description = detail?.description ?? fallback?.description ?? "";
+          final String? imageUrl = detail?.imageUrl ?? fallback?.imageUrl;
+          final String fromDate = detail?.fromDate ?? fallback?.fromDate ?? "";
+          final String? fromTime = detail?.fromTime ?? fallback?.fromTime;
+          final String toDate = detail?.toDate ?? fallback?.toDate ?? "";
+          final String? toTime = detail?.toTime ?? fallback?.toTime;
+          final String targetType = detail?.targetType ?? fallback?.targetsSummary ?? "All";
+          final int sendToParents = detail?.sendToParents ?? fallback?.sendToParents ?? 0;
+          final int sendToTeachers = detail?.sendToTeachers ?? fallback?.sendToTeachers ?? 0;
+          final int sendToSupportCrew = detail?.sendToSupportCrew ?? fallback?.sendToSupportCrew ?? 0;
+          final String submitStatus = detail?.submitStatus ?? fallback?.submitStatus ?? "";
+          final String publishStatus = detail?.publishStatus ?? fallback?.publishStatus ?? "";
+          final String createdBy = fallback?.createdBy ?? "";
 
           return RefreshIndicator(
             onRefresh: () => controller.fetchAnnouncementDetails(widget.id),
@@ -64,7 +88,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (detail.imageUrl != null) ...[
+                  if (imageUrl != null && imageUrl.isNotEmpty) ...[
                     Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
@@ -76,7 +100,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(11),
                         child: Image.network(
-                          detail.imageUrl!,
+                          imageUrl,
                           width: double.infinity,
                           height: 200,
                           fit: BoxFit.fill,
@@ -95,7 +119,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const SizedBox(height: 20),
                   ],
                   Text(
-                    detail.title,
+                    title,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -104,6 +128,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                   const SizedBox(height: 12),
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: AppColors.cardColor,
@@ -111,7 +136,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       border: Border.all(color: Colors.grey.shade300, width: 1),
                     ),
                     child: Text(
-                      detail.description,
+                      description,
                       style: TextStyle(
                         fontSize: 15,
                         height: 1.5,
@@ -124,64 +149,72 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     _buildInfoRow(
                       Icons.calendar_today,
                       "From Date",
-                      detail.fromDate,
+                      fromDate,
                     ),
-                    if (detail.fromTime != null)
+                    if (fromTime != null && fromTime.isNotEmpty)
                       _buildInfoRow(
                         Icons.access_time,
                         "From Time",
-                        detail.fromTime!,
+                        fromTime,
                       ),
                     _buildInfoRow(
                       Icons.calendar_today,
                       "To Date",
-                      detail.toDate,
+                      toDate,
                     ),
-                    if (detail.toTime != null)
+                    if (toTime != null && toTime.isNotEmpty)
                       _buildInfoRow(
                         Icons.access_time,
                         "To Time",
-                        detail.toTime!,
+                        toTime,
                       ),
                   ]),
                   const SizedBox(height: 16),
                   _buildInfoSection("Target Audience", [
+                    if (createdBy.isNotEmpty)
+                      _buildInfoRow(
+                        Icons.person,
+                        "Created By",
+                        createdBy,
+                      ),
                     _buildInfoRow(
                       Icons.group,
-                      "Target Type",
-                      detail.targetType.capitalizeFirst ?? detail.targetType,
+                      "Target Scope",
+                      targetType.capitalizeFirst ?? targetType,
                     ),
                     _buildInfoRow(
                       Icons.person_outline,
                       "Send to Parents",
-                      detail.sendToParents == 1 ? "Yes" : "No",
+                      sendToParents == 1 ? "Yes" : "No",
                     ),
                     _buildInfoRow(
                       Icons.school_outlined,
                       "Send to Teachers",
-                      detail.sendToTeachers == 1 ? "Yes" : "No",
+                      sendToTeachers == 1 ? "Yes" : "No",
                     ),
                     _buildInfoRow(
                       Icons.support_agent_outlined,
                       "Send to Support Crew",
-                      detail.sendToSupportCrew == 1 ? "Yes" : "No",
+                      sendToSupportCrew == 1 ? "Yes" : "No",
                     ),
                   ]),
                   const SizedBox(height: 16),
-                  _buildInfoSection("Status", [
-                    _buildInfoRow(
-                      Icons.info_outline,
-                      "Submit Status",
-                      detail.submitStatus.capitalizeFirst ??
-                          detail.submitStatus,
-                    ),
-                    _buildStatusToggleRow(
-                      Icons.publish,
-                      "Publish Status",
-                      detail.publishStatus,
-                      () => controller.toggleStatus(detail.id),
-                    ),
-                  ]),
+                  if (submitStatus.isNotEmpty || publishStatus.isNotEmpty)
+                    _buildInfoSection("Status", [
+                      if (submitStatus.isNotEmpty)
+                        _buildInfoRow(
+                          Icons.info_outline,
+                          "Submit Status",
+                          submitStatus.capitalizeFirst ?? submitStatus,
+                        ),
+                      if (publishStatus.isNotEmpty)
+                        _buildStatusToggleRow(
+                          Icons.publish,
+                          "Publish Status",
+                          publishStatus,
+                          () => controller.toggleStatus(widget.id),
+                        ),
+                    ]),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -281,8 +314,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             child: Switch(
               value: isActive,
               onChanged: (_) => onToggle(),
-              activeColor: Colors.green,
-              activeTrackColor: Colors.green.withAlpha(100),
+              activeThumbColor: Colors.green,
             ),
           ),
         ],

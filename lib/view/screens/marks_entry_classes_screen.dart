@@ -32,21 +32,9 @@ class MarksEntryClassesScreen extends StatelessWidget {
           elevation: 0,
           centerTitle: AppColors.appBarCenterTitle,
           leading: const CustomBackButton(),
-          title: Column(
-            children: [
-              const Text(
-                "SELECT CLASS",
-                style: AppColors.appBarTitleStyle,
-              ),
-              Text(
-                examTitle,
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+          title: const Text(
+            "SELECT CLASS",
+            style: AppColors.appBarTitleStyle,
           ),
         ),
         body: Obx(() {
@@ -84,7 +72,7 @@ class MarksEntryClassesScreen extends StatelessWidget {
           return RefreshIndicator(
             onRefresh: () => controller.fetchClasses(),
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               itemCount: controller.classList.length,
               itemBuilder: (context, index) {
                 final classData = controller.classList[index];

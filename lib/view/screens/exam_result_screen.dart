@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view_models/getX/exam_result_controller.dart';
 import 'package:smart_aig_admins_app/models/exam_result_model.dart';
-import 'package:smart_aig_admins_app/view/screens/exam_result_classes_screen.dart';
+import 'package:smart_aig_admins_app/models/exam_result_classes_model.dart';
+import 'package:smart_aig_admins_app/view/screens/exam_result_details_screen.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
 
 class ExamResultScreen extends StatelessWidget {
@@ -17,103 +18,95 @@ class ExamResultScreen extends StatelessWidget {
       child: SafeArea(
         child: Scaffold(
           backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          toolbarHeight: AppColors.appBarToolbarHeight,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: AppColors.appBarCenterTitle,
-          leading: const CustomBackButton(),
-          title: const Text(
-            "EXAM RESULTS",
-            style: AppColors.appBarTitleStyle,
+          appBar: AppBar(
+            toolbarHeight: AppColors.appBarToolbarHeight,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: AppColors.appBarCenterTitle,
+            leading: const CustomBackButton(),
+            title: const Text(
+              "EXAM RESULTS",
+              style: AppColors.appBarTitleStyle,
+            ),
           ),
-        ),
-        body: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          body: Obx(() {
+            if (controller.isLoading.value) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (!controller.success.value || controller.examList.isEmpty) {
+            if (!controller.success.value || controller.examList.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchExams(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF059669).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.emoji_events_rounded,
+                              size: 60,
+                              color: Color(0xFF059669),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
+                            "No Exams Found",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "There are no exam records available right now.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
             return RefreshIndicator(
               onRefresh: () => controller.fetchExams(),
-              child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF059669).withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.emoji_events_rounded,
-                            size: 60,
-                            color: Color(0xFF059669),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          "No Exams Found",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "There are no exam records available right now.",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                itemCount: controller.examList.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final exam = controller.examList[index];
+                  return _buildExamCard(context, exam, controller);
+                },
               ),
             );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => controller.fetchExams(),
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              itemCount: controller.examList.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final exam = controller.examList[index];
-                return _buildExamCard(context, exam);
-              },
-            ),
-          );
-        }),
-      ),
+          }),
+        ),
       ),
     );
   }
 
-  Widget _buildExamCard(BuildContext context, ExamResultData exam) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ExamResultClassesScreen(
-              examId: exam.id,
-              examTitle: exam.title,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
+  Widget _buildExamCard(
+      BuildContext context, ExamResultData exam, ExamResultController controller) {
+    return Obx(() {
+      final isLoadingClasses = controller.loadingClassesMap[exam.id] ?? false;
+      final classes = controller.examClassesMap[exam.id] ?? [];
+
+      return Container(
         decoration: BoxDecoration(
           color: AppColors.cardColor,
           borderRadius: AppColors.cardBorderRadius,
@@ -125,61 +118,188 @@ class ExamResultScreen extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF059669).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.assignment_outlined,
-                color: Color(0xFF059669),
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Text(
-                    exam.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF059669).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.assignment_outlined,
+                      color: Color(0xFF059669),
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 14,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Session: ${exam.session}",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          exam.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Session: ${exam.session}",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: Colors.grey,
-            ),
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            if (isLoadingClasses)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF059669)),
+                    ),
+                  ),
+                ),
+              )
+            else if (classes.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18, color: Colors.grey),
+                    SizedBox(width: 8),
+                    Text(
+                      "No classes found for this exam",
+                      style: TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        "SELECT CLASS:",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF64748B),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    ...classes.map((classData) => _buildClassTile(
+                          context,
+                          exam: exam,
+                          classData: classData,
+                        )),
+                  ],
+                ),
+              ),
           ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildClassTile(
+    BuildContext context, {
+    required ExamResultData exam,
+    required ClassData classData,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF059669).withOpacity(0.1)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ExamResultDetailsScreen(
+                  examId: exam.id,
+                  classId: classData.id,
+                  className: classData.name,
+                  examTitle: exam.title,
+                ),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF059669).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.school_rounded,
+                    color: Color(0xFF059669),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    classData.name,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: Color(0xFF94A3B8),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

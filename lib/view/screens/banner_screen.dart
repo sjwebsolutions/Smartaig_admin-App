@@ -102,29 +102,35 @@ class BannerScreen extends StatelessWidget {
                               children: [
                                 Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
+                                    GestureDetector(
+                                      onTap: () => _showToggleConfirmationDialog(
+                                        context,
+                                        controller,
+                                        banner,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            (banner.status == 1
-                                                    ? Colors.green
-                                                    : Colors.grey)
-                                                .withAlpha(30),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        banner.status == 1
-                                            ? "ACTIVE"
-                                            : "INACTIVE",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: banner.status == 1
-                                              ? Colors.green
-                                              : Colors.grey,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: (banner.status == 1
+                                                  ? Colors.green
+                                                  : Colors.grey)
+                                              .withAlpha(30),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: Text(
+                                          banner.status == 1
+                                              ? "ACTIVE"
+                                              : "INACTIVE",
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: banner.status == 1
+                                                ? Colors.green
+                                                : Colors.grey,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -133,8 +139,11 @@ class BannerScreen extends StatelessWidget {
                                       scale: 0.7,
                                       child: Switch(
                                         value: banner.status == 1,
-                                        onChanged: (_) => controller
-                                            .toggleBannerStatus(banner.id),
+                                        onChanged: (_) => _showToggleConfirmationDialog(
+                                          context,
+                                          controller,
+                                          banner,
+                                        ),
                                         activeColor: Colors.green,
                                         activeTrackColor: Colors.green
                                             .withAlpha(100),
@@ -286,6 +295,156 @@ class BannerScreen extends StatelessWidget {
         }),
         ),
       ),
+    );
+  }
+
+  void _showToggleConfirmationDialog(
+    BuildContext context,
+    BannerController controller,
+    BannerModel banner,
+  ) {
+    final bool isActive = banner.status == 1;
+    final String actionText = isActive ? "Deactivate" : "Activate";
+    final Color actionColor = isActive ? const Color(0xFFEF4444) : Colors.green;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: AppColors.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(
+              color: Colors.white,
+              width: 1.8,
+            ),
+          ),
+          elevation: 10,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header Icon Container
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: actionColor.withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isActive
+                        ? Icons.power_settings_new_rounded
+                        : Icons.check_circle_rounded,
+                    color: actionColor,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Title
+                Text(
+                  "$actionText Banner?",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Content Description
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: "Are you sure you want to "),
+                      TextSpan(
+                        text: actionText.toLowerCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: actionColor,
+                        ),
+                      ),
+                      const TextSpan(text: " the banner "),
+                      TextSpan(
+                        text: '"${banner.bannerName}"',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const TextSpan(text: "?"),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Buttons Row: Cancel & Confirm
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "CANCEL",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Confirm Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          controller.toggleBannerStatus(banner.id);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: actionColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "CONFIRM",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

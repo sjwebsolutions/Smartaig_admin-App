@@ -55,17 +55,7 @@ class MarksUploadStatusScreen extends StatelessWidget {
                 "UPLOAD STATUS",
                 style: AppColors.appBarTitleStyle,
               ),
-              const SizedBox(height: 2),
-              Text(
-                "$className ${sectionName != null ? '- Section $sectionName' : ''} ${streamName != null ? '($streamName)' : ''}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+
             ],
           ),
         ),

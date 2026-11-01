@@ -70,16 +70,12 @@ class AnnouncementScreen extends StatelessWidget {
               itemCount: controller.announcements.length,
               itemBuilder: (context, index) {
                 final announcement = controller.announcements[index];
-                return GestureDetector(
-                  onTap: () {
-                    Get.to(() => AnnouncementDetailScreen(id: announcement.id));
-                  },
-                  child: Card(
-                    color: AppColors.cardColor,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppColors.cardBorderRadius,
-                      side: const BorderSide(
+                return Card(
+                  color: AppColors.cardColor,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppColors.cardBorderRadius,
+                    side: const BorderSide(
                         color: Color(0xFF0038A8),
                         width: 1.2,
                       ),
@@ -180,16 +176,25 @@ class AnnouncementScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  Text(
-                                    announcement.status == 1
-                                        ? "Active"
-                                        : "Inactive",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: announcement.status == 1
-                                          ? const Color(0xFF16A34A)
-                                          : Colors.grey,
+                                  GestureDetector(
+                                    onTap: announcement.isEditable
+                                        ? () => _showToggleConfirmationDialog(
+                                              context,
+                                              controller,
+                                              announcement,
+                                            )
+                                        : null,
+                                    child: Text(
+                                      announcement.status == 1
+                                          ? "Active"
+                                          : "Inactive",
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: announcement.status == 1
+                                            ? const Color(0xFF16A34A)
+                                            : Colors.grey,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -199,35 +204,47 @@ class AnnouncementScreen extends StatelessWidget {
                                       value: announcement.status == 1,
                                       activeThumbColor: const Color(0xFF16A34A),
                                       onChanged: announcement.isEditable
-                                          ? (val) {
-                                              controller.toggleStatus(
-                                                announcement.id,
-                                              );
-                                            }
+                                          ? (_) => _showToggleConfirmationDialog(
+                                                context,
+                                                controller,
+                                                announcement,
+                                              )
                                           : null, // Disable if not editable
                                     ),
                                   ),
                                 ],
                               ),
-                              if (announcement.isEditable ||
-                                  (announcement.imageUrl != null &&
-                                      announcement.imageUrl!.isNotEmpty)) ...[
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8),
-                                  child: Divider(height: 1, thickness: 0.5),
-                                ),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    // 1. Edit Button
-                                    if (announcement.isEditable &&
-                                        announcement.submitStatus
-                                                .toLowerCase() !=
-                                            'locked' &&
-                                        announcement.submitStatus
-                                                .toLowerCase() !=
-                                            'submitted')
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Divider(height: 1, thickness: 0.5),
+                              ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  // 1. View Details Button
+                                  _buildCardActionButton(
+                                    icon: Icons.visibility_outlined,
+                                    label: "View Details",
+                                    color: const Color(0xFF0038A8),
+                                    onTap: () {
+                                      Get.to(
+                                        () => AnnouncementDetailScreen(
+                                          id: announcement.id,
+                                          announcement: announcement,
+                                        ),
+                                      );
+                                    },
+                                  ),
+
+                                  // 2. Edit Button
+                                  if (announcement.isEditable &&
+                                      announcement.submitStatus
+                                              .toLowerCase() !=
+                                          'locked' &&
+                                      announcement.submitStatus
+                                              .toLowerCase() !=
+                                          'submitted')
                                       _buildCardActionButton(
                                         icon: Icons.edit_outlined,
                                         label: "Edit",
@@ -528,19 +545,168 @@ class AnnouncementScreen extends StatelessWidget {
                                   ],
                                 ),
                               ],
-                            ],
+
                           ),
                         ),
                       ],
                     ),
-                  ),
-                );
-              },
+                  );
+                },
             ),
           );
         }),
       ),
       ),
+    );
+  }
+
+  void _showToggleConfirmationDialog(
+    BuildContext context,
+    AnnouncementController controller,
+    dynamic announcement,
+  ) {
+    final bool isActive = announcement.status == 1;
+    final String actionText = isActive ? "Deactivate" : "Activate";
+    final Color actionColor = isActive ? const Color(0xFFEF4444) : const Color(0xFF16A34A);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: AppColors.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(
+              color: Colors.white,
+              width: 1.8,
+            ),
+          ),
+          elevation: 10,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header Icon Container
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: actionColor.withAlpha(25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isActive
+                        ? Icons.power_settings_new_rounded
+                        : Icons.check_circle_rounded,
+                    color: actionColor,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Title
+                Text(
+                  "$actionText Announcement?",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Content Description
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: "Are you sure you want to "),
+                      TextSpan(
+                        text: actionText.toLowerCase(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: actionColor,
+                        ),
+                      ),
+                      const TextSpan(text: " the announcement "),
+                      TextSpan(
+                        text: '"${announcement.title}"',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0F172A),
+                        ),
+                      ),
+                      const TextSpan(text: "?"),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Buttons Row: Cancel & Confirm
+                Row(
+                  children: [
+                    // Cancel Button
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "CANCEL",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Confirm Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          controller.toggleStatus(announcement.id);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: actionColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "CONFIRM",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

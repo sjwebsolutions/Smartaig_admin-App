@@ -195,7 +195,7 @@ class _TransportLocationRequestDetailScreenState
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             children: [
               // Status Badge Banner
               Container(

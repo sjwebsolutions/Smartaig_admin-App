@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/dashboard_model.dart';
 import 'package:smart_aig_admins_app/services/auth_service.dart';
@@ -16,12 +20,24 @@ class DashboardController extends GetxController {
   var isLoading = true.obs;
   var hasError = false.obs;
   var dashboardData = Rxn<DashboardData>();
+  var localImagePath = ''.obs;
   Timer? _callbackCheckTimer;
+
+  String? get displayImageUrl {
+    final data = dashboardData.value;
+    if (data == null) return null;
+    final String? teacherUrl = data.teacher.uploadedProfileImageUrl;
+    final String? logoUrl = data.school.formattedLogo;
+    return (logoUrl != null && logoUrl.isNotEmpty)
+        ? logoUrl
+        : teacherUrl ?? (data.teacher.profileImageUrl.isNotEmpty ? data.teacher.profileImageUrl : null);
+  }
 
   @override
   void onInit() {
     super.onInit();
     _loadCachedDashboardData();
+    _loadCachedImagePath();
     fetchDashboardData();
     _startCallbackPolling();
   }
@@ -34,15 +50,76 @@ class DashboardController extends GetxController {
         final decoded = jsonDecode(cachedJson);
         if (decoded is Map<String, dynamic>) {
           dashboardData.value = DashboardData.fromJson(decoded);
-          isLoading.value = false;
           if (kDebugMode) {
-            debugPrint("DEBUG: Loaded cached dashboard data instantly");
+            debugPrint("DEBUG: Loaded cached dashboard data");
           }
+          cacheProfileImage(displayImageUrl);
         }
       }
     } catch (e) {
       if (kDebugMode) {
         debugPrint("Error loading cached dashboard data: $e");
+      }
+    }
+  }
+
+  Future<void> _loadCachedImagePath() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? savedPath = prefs.getString('cached_dashboard_image_path');
+      if (savedPath != null && savedPath.isNotEmpty) {
+        final file = File(savedPath);
+        if (await file.exists()) {
+          localImagePath.value = savedPath;
+          if (kDebugMode) {
+            debugPrint("DEBUG: Loaded cached dashboard image path: $savedPath");
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error loading cached dashboard image path: $e");
+      }
+    }
+  }
+
+  Future<void> cacheProfileImage(String? imageUrl) async {
+    if (imageUrl == null || imageUrl.isEmpty) return;
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? lastUrl = prefs.getString('cached_dashboard_image_url');
+      final String? lastPath = prefs.getString('cached_dashboard_image_path');
+
+      if (lastUrl == imageUrl && lastPath != null && lastPath.isNotEmpty) {
+        final file = File(lastPath);
+        if (await file.exists()) {
+          localImagePath.value = lastPath;
+        }
+      }
+
+      final response = await http.get(Uri.parse(imageUrl)).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+        final dir = await getApplicationDocumentsDirectory();
+        final String fileName = 'dashboard_logo.png';
+        final File localFile = File('${dir.path}/$fileName');
+
+        await localFile.writeAsBytes(response.bodyBytes);
+
+        try {
+          FileImage(localFile).evict();
+        } catch (_) {}
+
+        await prefs.setString('cached_dashboard_image_url', imageUrl);
+        await prefs.setString('cached_dashboard_image_path', localFile.path);
+
+        localImagePath.value = localFile.path;
+        if (kDebugMode) {
+          debugPrint("DEBUG: Saved dashboard image locally to ${localFile.path}");
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint("Error caching dashboard image locally: $e");
       }
     }
   }
@@ -81,12 +158,13 @@ class DashboardController extends GetxController {
     } catch (_) {}
   }
 
-  Future<void> fetchDashboardData() async {
+  Future<void> fetchDashboardData({bool showLoading = true}) async {
+    final DateTime startTime = DateTime.now();
     try {
       if (kDebugMode) {
         debugPrint("DEBUG: fetchDashboardData started");
       }
-      if (dashboardData.value == null) {
+      if (showLoading || dashboardData.value == null) {
         isLoading.value = true;
       }
       hasError.value = false;
@@ -96,7 +174,8 @@ class DashboardController extends GetxController {
       if (response.success && response.data != null) {
         dashboardData.value = response.data;
         hasError.value = false;
-        isLoading.value = false;
+
+        cacheProfileImage(displayImageUrl);
 
         // Save fresh dashboard data to local cache
         try {
@@ -163,6 +242,13 @@ class DashboardController extends GetxController {
         debugPrint("DEBUG: Error in fetchDashboardData: $e");
       }
     } finally {
+      if (showLoading) {
+        final elapsedTime = DateTime.now().difference(startTime).inMilliseconds;
+        const minShimmerTimeMs = 800; // Ensures smooth visible shimmer effect (~800ms)
+        if (elapsedTime < minShimmerTimeMs) {
+          await Future.delayed(Duration(milliseconds: minShimmerTimeMs - elapsedTime));
+        }
+      }
       isLoading.value = false;
       if (kDebugMode) {
         debugPrint("DEBUG: fetchDashboardData finished");

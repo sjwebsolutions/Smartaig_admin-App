@@ -239,7 +239,7 @@ class _TransportScreenState extends State<TransportScreen> {
       return RefreshIndicator(
         onRefresh: () => controller.fetchLiveOverview(),
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           children: [
             // Summary Stat Grid
             if (summary != null) _buildLiveOverviewSummaryGrid(summary),
@@ -833,7 +833,7 @@ class _TransportScreenState extends State<TransportScreen> {
 
         // Overview Top Summary Cards
         Obx(() => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
@@ -890,7 +890,7 @@ class _TransportScreenState extends State<TransportScreen> {
 
         // Filter Chips
         Obx(() => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
                   _buildFilterChip("All", "all", const Color(0xFF0284C7)),
@@ -1063,7 +1063,7 @@ class _TransportScreenState extends State<TransportScreen> {
       return RefreshIndicator(
         onRefresh: () => controller.fetchLocationRequests(),
         child: ListView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           itemCount: requests.length,
           itemBuilder: (context, index) {
             final req = requests[index];
@@ -1386,7 +1386,7 @@ class _TransportScreenState extends State<TransportScreen> {
 
         // Halts Filter Chips
         Obx(() => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
                   _buildHaltFilterChip("All Halts", "all", const Color(0xFF0284C7)),
@@ -1456,7 +1456,7 @@ class _TransportScreenState extends State<TransportScreen> {
             return RefreshIndicator(
               onRefresh: () => controller.fetchTransportHalts(),
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 itemCount: halts.length,
                 itemBuilder: (context, index) {
                   final halt = halts[index];
@@ -1864,7 +1864,7 @@ class _TransportScreenState extends State<TransportScreen> {
 
         // Alerts Filter Chips (Status)
         Obx(() => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
                   _buildAlertFilterChip("Unresolved", "unresolved", const Color(0xFFEF4444)),
@@ -1934,7 +1934,7 @@ class _TransportScreenState extends State<TransportScreen> {
             return RefreshIndicator(
               onRefresh: () => controller.fetchTransportAlerts(),
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 itemCount: alerts.length,
                 itemBuilder: (context, index) {
                   final alert = alerts[index];

@@ -107,62 +107,66 @@ class _MainScreenState extends State<MainScreen> {
             _titles[_selectedIndex],
             style: AppColors.appBarTitleStyle,
           ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 6.0),
-              child: IconButton(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Color(0xFF0F172A),
-                      size: 26,
-                    ),
-                    Obx(() {
-                      final unreadCount = NotificationController.to.unreadCount.value;
-
-                      if (unreadCount > 0) {
-                        return Positioned(
-                          top: -3,
-                          right: -4,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEF4444),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 1.5,
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              unreadCount > 99 ? '99+' : '$unreadCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                              ),
-                            ),
+          actions: _selectedIndex == 0
+              ? [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6.0),
+                    child: IconButton(
+                      icon: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          const Icon(
+                            Icons.notifications_none_rounded,
+                            color: Color(0xFF0F172A),
+                            size: 26,
                           ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    }),
-                  ],
-                ),
-                onPressed: () {
-                  Get.to(() => const NotificationScreen());
-                },
-              ),
-            ),
-          ],
+                          Obx(() {
+                            final unreadCount =
+                                NotificationController.to.unreadCount.value;
+
+                            if (unreadCount > 0) {
+                              return Positioned(
+                                top: -3,
+                                right: -4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 1),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    unreadCount > 99 ? '99+' : '$unreadCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }),
+                        ],
+                      ),
+                      onPressed: () {
+                        Get.to(() => const NotificationScreen());
+                      },
+                    ),
+                  ),
+                ]
+              : null,
         ),
 
         // ================= NAVIGATION DRAWER =================
@@ -227,6 +231,7 @@ class _MainScreenState extends State<MainScreen> {
                   final schoolLogo = data?.school.formattedLogo;
                   final teacherImage = data?.teacher.uploadedProfileImageUrl;
                   final displayImage = schoolLogo ?? teacherImage ?? data?.teacher.profileImageUrl;
+                  final localPath = dashboardController.localImagePath.value;
                   final schoolName = data?.school.schoolName ?? "School Admin";
                   final schoolCode = data?.school.schoolCode ?? "";
                   final userName = data?.teacher.name ?? "Admin User";
@@ -283,21 +288,13 @@ class _MainScreenState extends State<MainScreen> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
-                                child: displayImage != null && displayImage.isNotEmpty
-                                    ? Image.network(
-                                        displayImage,
+                                child: localPath.isNotEmpty && File(localPath).existsSync()
+                                    ? Image.file(
+                                        File(localPath),
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(
-                                          Icons.school_rounded,
-                                          size: 26,
-                                          color: Color(0xFF94A3B8),
-                                        ),
+                                        errorBuilder: (context, error, stackTrace) => _buildDrawerFallbackImage(displayImage),
                                       )
-                                    : const Icon(
-                                        Icons.school_rounded,
-                                        size: 26,
-                                        color: Color(0xFF94A3B8),
-                                      ),
+                                    : _buildDrawerFallbackImage(displayImage),
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -681,6 +678,24 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildDrawerFallbackImage(String? displayImage) {
+    return displayImage != null && displayImage.isNotEmpty
+        ? Image.network(
+            displayImage,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const Icon(
+              Icons.school_rounded,
+              size: 26,
+              color: Color(0xFF94A3B8),
+            ),
+          )
+        : const Icon(
+            Icons.school_rounded,
+            size: 26,
+            color: Color(0xFF94A3B8),
+          );
   }
 
   Widget _buildBottomNavigationBar() {

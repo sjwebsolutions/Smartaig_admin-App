@@ -12,6 +12,7 @@ class ExamResultClassDetailsController extends GetxController {
   var isLoading = true.obs;
   var classDetails = Rxn<ClassDetailsData>();
   var success = false.obs;
+  var selectedTab = 0.obs;
 
   @override
   void onInit() {
@@ -22,6 +23,7 @@ class ExamResultClassDetailsController extends GetxController {
   Future<void> fetchClassDetails() async {
     try {
       isLoading.value = true;
+      selectedTab.value = 0;
       final response = await _examResultService.getClassDetails(examId, classId);
       success.value = response.success;
       if (response.success && response.data != null) {

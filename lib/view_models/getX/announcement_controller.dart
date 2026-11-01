@@ -212,17 +212,16 @@ class AnnouncementController extends GetxController {
       if (response.success && response.data != null) {
         announcementDetail.value = response.data;
       } else {
-        CustomSnackBar.showError(
-          "Error",
-          response.message ?? "Failed to fetch announcement details",
-        );
+        final hasItemInList = announcements.any((a) => a.id == id);
+        if (!hasItemInList) {
+          CustomSnackBar.showError(
+            "Notice",
+            response.message ?? "Failed to fetch announcement details",
+          );
+        }
       }
     } catch (e) {
       debugPrint("Error in fetchAnnouncementDetails: $e");
-      CustomSnackBar.showError(
-        "Error",
-        "Failed to fetch announcement details. Please check your connection.",
-      );
     } finally {
       isLoadingDetails.value = false;
     }

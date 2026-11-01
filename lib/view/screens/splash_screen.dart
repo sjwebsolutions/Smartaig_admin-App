@@ -65,13 +65,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token');
 
-      if (token != null && token.isNotEmpty && token != 'null') {
-        // Pre-initialize DashboardController in background while splash is visible
-        if (!Get.isRegistered<DashboardController>()) {
-          Get.put(DashboardController());
-        }
-      }
-
       // Fast, smooth transition duration
       await Future.delayed(const Duration(milliseconds: 700));
 
