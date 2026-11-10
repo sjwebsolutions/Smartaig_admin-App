@@ -10,6 +10,7 @@ import 'package:smart_aig_admins_app/view/screens/banner_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/billing_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/callback_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/deadlines_screen.dart';
+import 'package:smart_aig_admins_app/view/screens/event_entry_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/event_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/exam_result_screen.dart';
 import 'package:smart_aig_admins_app/view/screens/homework_screen.dart';
@@ -56,7 +57,7 @@ class DashboardModules extends StatelessWidget {
     final double effGridCardTitleFontSize =
         gridCardTitleFontSize ?? (screenWidth * 0.027).clamp(9.5, 11.5);
     final double effGridCardAspectRatio =
-        gridCardAspectRatio ?? ((screenWidth - 24 - 12) / 3 / 96).clamp(0.96, 1.20);
+        gridCardAspectRatio ?? ((screenWidth - 24 - 12) / 3 / 109).clamp(0.85, 1.00);
 
     final DashboardController controller = Get.isRegistered<DashboardController>()
         ? Get.find<DashboardController>()
@@ -102,7 +103,7 @@ class DashboardModules extends StatelessWidget {
               final unread = studentAttendanceController.unreadCount.value;
               return _buildGridCard(
                 icon: Icons.assignment_ind_rounded,
-                color: const Color(0xFF6366F1), // Indigo
+                color: const Color(0xFF6366F1), // Royal Indigo
                 circleBgColor: const Color(0xFFEDE9FE),
                 title: "Student Attendance",
                 titleFontSize: effGridCardTitleFontSize,
@@ -122,7 +123,7 @@ class DashboardModules extends StatelessWidget {
               final unread = teacherAttendanceController.unreadCount.value;
               return _buildGridCard(
                 icon: Icons.supervisor_account_rounded,
-                color: const Color(0xFF06B6D4), // Cyan
+                color: const Color(0xFF06B6D4), // Bright Cyan
                 circleBgColor: const Color(0xFFCFFAFE),
                 title: "Teacher Attendance",
                 titleFontSize: effGridCardTitleFontSize,
@@ -167,7 +168,7 @@ class DashboardModules extends StatelessWidget {
                   teacherLeaveController.pendingCount;
               return _buildGridCard(
                 icon: Icons.free_cancellation_rounded,
-                color: const Color(0xFF0D9488), // Teal
+                color: const Color(0xFF0D9488), // Deep Teal
                 circleBgColor: const Color(0xFFCCFBF1),
                 title: "Teacher Leave",
                 titleFontSize: effGridCardTitleFontSize,
@@ -186,8 +187,8 @@ class DashboardModules extends StatelessWidget {
             // 5. Scan Attendance
             _buildGridCard(
               icon: Icons.qr_code_scanner_rounded,
-              color: const Color(0xFF0284C7), // Sky Blue
-              circleBgColor: const Color(0xFFE0F2FE),
+              color: const Color(0xFF2563EB), // Cobalt Blue
+              circleBgColor: const Color(0xFFDBEAFE),
               title: "Scan Attendance",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -204,7 +205,7 @@ class DashboardModules extends StatelessWidget {
         // 2. Academic Management Section
         _buildSectionCard(
           title: "Academic Management",
-          accentColor: const Color(0xFF0D9488),
+          accentColor: const Color(0xFF059669),
           sectionIcon: Icons.menu_book_rounded,
           titleFontSize: effSectionTitleFontSize,
           childAspectRatio: effGridCardAspectRatio,
@@ -212,8 +213,8 @@ class DashboardModules extends StatelessWidget {
             // 1. Syllabus
             _buildGridCard(
               icon: Icons.book_rounded,
-              color: const Color(0xFF0D9488), // Teal
-              circleBgColor: const Color(0xFFCCFBF1),
+              color: const Color(0xFF059669), // Mint Green
+              circleBgColor: const Color(0xFFECFDF5),
               title: "Syllabus",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -228,8 +229,8 @@ class DashboardModules extends StatelessWidget {
             // 2. Home Work
             _buildGridCard(
               icon: Icons.home_work_rounded,
-              color: const Color(0xFF4F46E5), // Indigo
-              circleBgColor: const Color(0xFFE0E7FF),
+              color: const Color(0xFF7C3AED), // Deep Purple
+              circleBgColor: const Color(0xFFF3E8FF),
               title: "Home Work",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -241,10 +242,10 @@ class DashboardModules extends StatelessWidget {
               },
             ),
 
-            // 3. Event
+            // 3. Event E-Pass
             _buildGridCard(
               icon: Icons.event_rounded,
-              color: const Color(0xFFEF4444), // Red
+              color: const Color(0xFFEF4444), // Coral Red
               circleBgColor: const Color(0xFFFEE2E2),
               title: "Event E-Pass",
               titleFontSize: effGridCardTitleFontSize,
@@ -256,13 +257,29 @@ class DashboardModules extends StatelessWidget {
                 );
               },
             ),
+
+            // 4. Event Entry
+            _buildGridCard(
+              icon: Icons.event_available_rounded,
+              color: const Color(0xFFA855F7), // Orchid Violet
+              circleBgColor: const Color(0xFFF3E8FF),
+              title: "Event Entry",
+              titleFontSize: effGridCardTitleFontSize,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const EventEntryScreen()),
+                );
+              },
+            ),
           ],
         ),
 
         // 3. Admission Management Section
         _buildSectionCard(
           title: "Admission Management",
-          accentColor: const Color(0xFF7C3AED),
+          accentColor: const Color(0xFFC026D3),
           sectionIcon: Icons.person_add_alt_1_rounded,
           titleFontSize: effSectionTitleFontSize,
           childAspectRatio: effGridCardAspectRatio,
@@ -270,8 +287,8 @@ class DashboardModules extends StatelessWidget {
             // 1. Admission Form
             _buildGridCard(
               icon: Icons.group_add_rounded,
-              color: const Color(0xFF7C3AED), // Violet
-              circleBgColor: const Color(0xFFF3E8FF),
+              color: const Color(0xFFC026D3), // Magenta Violet
+              circleBgColor: const Color(0xFFFAE8FF),
               title: "Admission Form",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -296,7 +313,7 @@ class DashboardModules extends StatelessWidget {
             // 1. Marks Report
             _buildGridCard(
               icon: Icons.edit_note_rounded,
-              color: const Color(0xFFF43F5E), // Rose
+              color: const Color(0xFFF43F5E), // Hot Rose
               circleBgColor: const Color(0xFFFFE4E6),
               title: "Marks Report",
               titleFontSize: effGridCardTitleFontSize,
@@ -312,7 +329,7 @@ class DashboardModules extends StatelessWidget {
             // 2. Exam Result
             _buildGridCard(
               icon: Icons.emoji_events_rounded,
-              color: const Color(0xFF8B5CF6), // Purple
+              color: const Color(0xFF6D28D9), // Royal Purple
               circleBgColor: const Color(0xFFEDE9FE),
               title: "Exam Result",
               titleFontSize: effGridCardTitleFontSize,
@@ -328,8 +345,8 @@ class DashboardModules extends StatelessWidget {
             // 3. Admit Card Scan
             _buildGridCard(
               icon: Icons.qr_code_scanner_rounded,
-              color: const Color(0xFF059669), // Emerald
-              circleBgColor: const Color(0xFFD1FAE5),
+              color: const Color(0xFF14B8A6), // Seafoam Green
+              circleBgColor: const Color(0xFFCCFBF1),
               title: "Admit Card Scan",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -344,8 +361,8 @@ class DashboardModules extends StatelessWidget {
             // 4. Invigilator Duty
             _buildGridCard(
               icon: Icons.assignment_turned_in_rounded,
-              color: const Color(0xFF6366F1), // Indigo
-              circleBgColor: const Color(0xFFEDE9FE),
+              color: const Color(0xFF3B82F6), // Sapphire Blue
+              circleBgColor: const Color(0xFFDBEAFE),
               title: "Invigilator Duties",
               titleFontSize: effGridCardTitleFontSize,
               onTap: () {
@@ -360,7 +377,7 @@ class DashboardModules extends StatelessWidget {
             // 5. Seating Plan
             _buildGridCard(
               icon: Icons.event_seat_rounded,
-              color: const Color(0xFFEA580C), // Orange / Amber
+              color: const Color(0xFFEA580C), // Sunset Amber
               circleBgColor: const Color(0xFFFFEDD5),
               title: "Seating Plan",
               titleFontSize: effGridCardTitleFontSize,
@@ -410,7 +427,7 @@ class DashboardModules extends StatelessWidget {
               final count = bannerController.totalBanners;
               return _buildGridCard(
                 icon: Icons.view_carousel_rounded,
-                color: const Color(0xFFEC4899), // Pink
+                color: const Color(0xFFEC4899), // Neon Pink
                 circleBgColor: const Color(0xFFFCE7F3),
                 title: "Banner",
                 titleFontSize: effGridCardTitleFontSize,
@@ -432,7 +449,7 @@ class DashboardModules extends StatelessWidget {
               final data = controller.dashboardData.value;
               return _buildGridCard(
                 icon: Icons.phone_callback_rounded,
-                color: const Color(0xFFEF4444), // Red
+                color: const Color(0xFFDC2626), // Crimson Red
                 circleBgColor: const Color(0xFFFEE2E2),
                 title: "Call Back Request",
                 titleFontSize: effGridCardTitleFontSize,
@@ -455,7 +472,7 @@ class DashboardModules extends StatelessWidget {
         // 6. Finance Management Section
         _buildSectionCard(
           title: "Finance Management",
-          accentColor: const Color(0xFFF59E0B),
+          accentColor: const Color(0xFFD97706),
           sectionIcon: Icons.account_balance_wallet_rounded,
           titleFontSize: effSectionTitleFontSize,
           childAspectRatio: effGridCardAspectRatio,
@@ -463,7 +480,7 @@ class DashboardModules extends StatelessWidget {
             // 1. Assets Reports
             _buildGridCard(
               icon: Icons.bar_chart_rounded,
-              color: const Color(0xFFF59E0B), // Amber
+              color: const Color(0xFFD97706), // Warm Gold
               circleBgColor: const Color(0xFFFEF3C7),
               title: "Assets Reports",
               titleFontSize: effGridCardTitleFontSize,
@@ -481,7 +498,7 @@ class DashboardModules extends StatelessWidget {
         // 7. AIG Portal Section
         _buildSectionCard(
           title: "AIG Portal",
-          accentColor: const Color(0xFF10B981),
+          accentColor: const Color(0xFF16A34A),
           sectionIcon: Icons.grid_view_rounded,
           titleFontSize: effSectionTitleFontSize,
           childAspectRatio: effGridCardAspectRatio,
@@ -491,8 +508,8 @@ class DashboardModules extends StatelessWidget {
               final todayCount = meetingController.todayOngoingMeetings.length;
               return _buildGridCard(
                 icon: Icons.groups_rounded,
-                color: const Color(0xFF10B981), // Emerald Green
-                circleBgColor: const Color(0xFFD1FAE5),
+                color: const Color(0xFF16A34A), // Forest Green
+                circleBgColor: const Color(0xFFDCFCE7),
                 title: "AIG Meetings",
                 titleFontSize: effGridCardTitleFontSize,
                 badgeCount: todayCount > 0 ? todayCount : null,
@@ -515,8 +532,8 @@ class DashboardModules extends StatelessWidget {
                   .length;
               return _buildGridCard(
                 icon: Icons.event_available_rounded,
-                color: const Color(0xFFF59E0B), // Amber / Orange
-                circleBgColor: const Color(0xFFFEF3C7),
+                color: const Color(0xFFF97316), // Vivid Orange
+                circleBgColor: const Color(0xFFFFEDD5),
                 title: "Upcoming Deadlines",
                 titleFontSize: effGridCardTitleFontSize,
                 badgeCount: upcomingDeadlinesCount > 0
@@ -537,7 +554,7 @@ class DashboardModules extends StatelessWidget {
             // 3. AIG Payments
             _buildGridCard(
               icon: Icons.account_balance_wallet_rounded,
-              color: const Color(0xFF2563EB), // Blue
+              color: const Color(0xFF1D4ED8), // Electric Blue
               circleBgColor: const Color(0xFFDBEAFE),
               title: "AIG Payments",
               titleFontSize: effGridCardTitleFontSize,
@@ -555,7 +572,7 @@ class DashboardModules extends StatelessWidget {
         // 8. Administration & Services Section
         _buildSectionCard(
           title: "Administration & Services",
-          accentColor: const Color(0xFF64748B),
+          accentColor: const Color(0xFF0284C7),
           sectionIcon: Icons.widgets_rounded,
           titleFontSize: effSectionTitleFontSize,
           childAspectRatio: effGridCardAspectRatio,
@@ -563,7 +580,7 @@ class DashboardModules extends StatelessWidget {
             // 1. Student Count
             _buildGridCard(
               icon: Icons.pie_chart_rounded,
-              color: const Color(0xFF0EA5E9), // Sky Blue
+              color: const Color(0xFF0284C7), // Turquoise Blue
               circleBgColor: const Color(0xFFE0F2FE),
               title: "Student Count",
               titleFontSize: effGridCardTitleFontSize,
@@ -579,7 +596,7 @@ class DashboardModules extends StatelessWidget {
             // 2. Transport
             _buildGridCard(
               icon: Icons.directions_bus_rounded,
-              color: const Color(0xFFD97706), // Amber/Orange
+              color: const Color(0xFFB45309), // Amber Gold
               circleBgColor: const Color(0xFFFEF3C7),
               title: "Transport",
               titleFontSize: effGridCardTitleFontSize,
@@ -603,7 +620,7 @@ class DashboardModules extends StatelessWidget {
     required IconData sectionIcon,
     required List<Widget> children,
     double titleFontSize = 13,
-    double childAspectRatio = 1.20,
+    double childAspectRatio = 0.90,
   }) {
     return RepaintBoundary(
       child: Padding(
@@ -739,17 +756,17 @@ class DashboardModules extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       color: circleBgColor,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
-                      child: Icon(icon, color: color, size: 18),
+                      child: Icon(icon, color: color, size: 20),
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 5),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: Text(

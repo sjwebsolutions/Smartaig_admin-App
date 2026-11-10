@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/view/widgets/custom_shimmer.dart';
 import 'package:smart_aig_admins_app/view/widgets/dashboard_modules.dart';
+import 'package:smart_aig_admins_app/view/widgets/live_telecast_card.dart';
+import 'package:smart_aig_admins_app/view_models/getX/event_entry_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/meeting_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/deadlines_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/student_attendance_controller.dart';
@@ -23,6 +25,7 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     final double screenWidth = MediaQuery.of(context).size.width;
     final double profileNameFontSize = (screenWidth * 0.039).clamp(13.5, 16.5);
     final double greetingNameFontSize = (screenWidth * 0.046).clamp(16.0, 19.5);
@@ -31,7 +34,7 @@ class DashboardScreen extends StatelessWidget {
     final double statValueFontSize = (screenWidth * 0.045).clamp(15.0, 20.0);
     final double sectionTitleFontSize = (screenWidth * 0.032).clamp(11.5, 13.5);
     final double gridCardTitleFontSize = (screenWidth * 0.027).clamp(9.5, 11.5);
-    final double gridCardAspectRatio = ((screenWidth - 24 - 12) / 3 / 96).clamp(0.96, 1.20);
+    final double gridCardAspectRatio = ((screenWidth - 24 - 12) / 3 / 109).clamp(0.85, 1.00);
 
     final DashboardController controller = Get.isRegistered<DashboardController>()
         ? Get.find<DashboardController>()
@@ -63,6 +66,9 @@ class DashboardScreen extends StatelessWidget {
     final TeacherLeaveController teacherLeaveController = Get.isRegistered<TeacherLeaveController>()
         ? Get.find<TeacherLeaveController>()
         : Get.put(TeacherLeaveController());
+    final EventEntryController eventEntryController = Get.isRegistered<EventEntryController>()
+        ? Get.find<EventEntryController>()
+        : Get.put(EventEntryController());
 
     return Container(
       decoration: AppColors.screenDecoration,
@@ -105,6 +111,7 @@ class DashboardScreen extends StatelessWidget {
                   invigilatorDutyController.fetchDuties(),
                   studentLeaveController.fetchStudentLeaves(showLoading: false),
                   teacherLeaveController.fetchTeacherLeaves(showLoading: false),
+                  eventEntryController.fetchActiveEvents(),
                 ]).catchError((e) {
                   return <void>[];
                 });
@@ -112,12 +119,31 @@ class DashboardScreen extends StatelessWidget {
               child: SafeArea(
                 top: false,
                 bottom: false,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
+                child: isLandscape
+                    ? Obx(() {
+                        final liveEvents = eventEntryController.activeEventsList.where((e) {
+                          final telecast = e.liveTelecast;
+                          if (telecast == null || !telecast.isLive) return false;
+                          final hasVideo = (telecast.youtubeVideoId != null && telecast.youtubeVideoId!.isNotEmpty) ||
+                              (telecast.youtubeUrl != null && telecast.youtubeUrl!.isNotEmpty) ||
+                              (telecast.embedUrl != null && telecast.embedUrl!.isNotEmpty);
+                          return hasVideo;
+                        }).toList();
+
+                        if (liveEvents.isNotEmpty) {
+                          return Center(
+                            child: LiveTelecastCard(event: liveEvents.first),
+                          );
+                        }
+
+                        return const SizedBox.shrink();
+                      })
+                    : SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 8),
 
                       // Greeting & Teacher Reviewer Row
                       Padding(
@@ -491,6 +517,24 @@ class DashboardScreen extends StatelessWidget {
                           countFontSize: (statValueFontSize * 0.85).clamp(14.0, 17.0),
                           labelFontSize: statTitleFontSize,
                         ),
+
+                      // Live Telecast Card
+                      Obx(() {
+                        final liveEvents = eventEntryController.activeEventsList.where((e) {
+                          final telecast = e.liveTelecast;
+                          if (telecast == null || !telecast.isLive) return false;
+                          final hasVideo = (telecast.youtubeVideoId != null && telecast.youtubeVideoId!.isNotEmpty) ||
+                              (telecast.youtubeUrl != null && telecast.youtubeUrl!.isNotEmpty) ||
+                              (telecast.embedUrl != null && telecast.embedUrl!.isNotEmpty);
+                          return hasVideo;
+                        }).toList();
+
+                        if (liveEvents.isEmpty) return const SizedBox.shrink();
+
+                        return Column(
+                          children: liveEvents.map((event) => LiveTelecastCard(event: event)).toList(),
+                        );
+                      }),
 
                       // Dashboard Modules
                       DashboardModules(
@@ -921,7 +965,7 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildShimmerLoading(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double gridCardAspectRatio = ((screenWidth - 32 - 12) / 3 / 96).clamp(0.96, 1.20);
+    final double gridCardAspectRatio = ((screenWidth - 32 - 12) / 3 / 109).clamp(0.85, 1.00);
 
     return SafeArea(
       bottom: false,

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:smart_aig_admins_app/services/app_update_service.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
@@ -76,14 +77,24 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+
+    if (isLandscape) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
+
     return Container(
-      decoration: _getScreenDecoration(),
+      decoration: isLandscape ? const BoxDecoration(color: Colors.black) : _getScreenDecoration(),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: isLandscape ? Colors.black : Colors.transparent,
         drawerEnableOpenDragGesture: false,
 
         // ================= APP BAR =================
-        appBar: AppBar(
+        appBar: isLandscape
+            ? null
+            : AppBar(
           automaticallyImplyLeading: false,
           leading: _selectedIndex == 0
               ? Builder(
@@ -170,7 +181,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
 
         // ================= NAVIGATION DRAWER =================
-        drawer: _buildDrawer(context),
+        drawer: isLandscape ? null : _buildDrawer(context),
 
         // ================= BODY (Preserves tab state) =================
         body: IndexedStack(
@@ -179,7 +190,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
 
         // ================= BOTTOM NAVIGATION =================
-        bottomNavigationBar: _buildBottomNavigationBar(),
+        bottomNavigationBar: isLandscape ? null : _buildBottomNavigationBar(),
       ),
     );
   }

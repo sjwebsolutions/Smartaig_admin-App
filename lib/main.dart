@@ -174,6 +174,25 @@ class MyApp extends StatelessWidget {
             elevation: 0,
             margin: EdgeInsets.zero,
           ),
+          popupMenuTheme: PopupMenuThemeData(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 8,
+            textStyle: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          dialogTheme: DialogThemeData(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 8,
+          ),
         ),
       ),
     );
