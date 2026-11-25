@@ -115,12 +115,6 @@ class TeacherAttendanceController extends GetxController {
           "Success",
           "Attendance reminder sent to $teacherName",
         );
-        
-        // Also show a local notification for admin's confirmation
-        await NotificationService.to.showLocalNotification(
-          "Reminder Sent",
-          "Notification successfully delivered to $teacherName",
-        );
       } else {
         CustomSnackBar.showError(
           "Error",

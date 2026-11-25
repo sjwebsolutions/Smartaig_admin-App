@@ -17,19 +17,18 @@ class MainActivity : FlutterActivity() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = "callback_notification_channel"
-            val channelName = "Callback & Alert Notifications"
-            val channelDescription = "Channel for callback requests and urgent admin alerts"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-
-            val channel = NotificationChannel(channelId, channelName, importance)
-            channel.description = channelDescription
-            channel.enableVibration(true)
-            channel.enableLights(true)
-            channel.setShowBadge(true)
-
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager?
-            notificationManager?.createNotificationChannel(channel)
+
+            val callbackChannel = NotificationChannel(
+                "callback_notification_channel",
+                "Callback & Alert Notifications",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            callbackChannel.description = "Channel for callback requests and urgent admin alerts"
+            callbackChannel.enableVibration(true)
+            callbackChannel.enableLights(true)
+            callbackChannel.setShowBadge(true)
+            notificationManager?.createNotificationChannel(callbackChannel)
         }
     }
 }

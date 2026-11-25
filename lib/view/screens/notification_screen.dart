@@ -1,43 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:smart_aig_admins_app/models/notification_model.dart';
 import 'package:smart_aig_admins_app/utils/app_colors.dart';
-import 'package:smart_aig_admins_app/view_models/getX/announcement_controller.dart';
-import 'package:smart_aig_admins_app/view_models/getX/dashboard_controller.dart';
 import 'package:smart_aig_admins_app/view_models/getX/notification_controller.dart';
-
-class _TimeParts {
-  final int hour;
-  final int minute;
-  final int second;
-
-  _TimeParts(this.hour, this.minute, [this.second = 0]);
-}
-
-class NotificationItemModel {
-  final String id;
-  final String title;
-  final String message;
-  final String date;
-  final String? time;
-  final String category; // 'Announcements', 'Callbacks', 'Leaves'
-  final Color color;
-  final IconData icon;
-  final DateTime? dateTime;
-  final int sortOrder;
-
-  NotificationItemModel({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.date,
-    this.time,
-    required this.category,
-    required this.color,
-    required this.icon,
-    this.dateTime,
-    this.sortOrder = 0,
-  });
-}
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -47,24 +12,16 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  static const int _pageSize = 10;
-  int _displayedCount = 10;
-  bool _isLoadingMore = false;
   final ScrollController _scrollController = ScrollController();
 
-  final AnnouncementController _announcementController = Get.isRegistered<AnnouncementController>()
-      ? Get.find<AnnouncementController>()
-      : Get.put(AnnouncementController());
-
-  final DashboardController _dashboardController = Get.isRegistered<DashboardController>()
-      ? Get.find<DashboardController>()
-      : Get.put(DashboardController());
+  final NotificationController _notificationController = Get.isRegistered<NotificationController>()
+      ? Get.find<NotificationController>()
+      : Get.put(NotificationController(), permanent: true);
 
   @override
   void initState() {
     super.initState();
-    _announcementController.fetchAnnouncements();
-    _dashboardController.fetchDashboardData();
+    _notificationController.fetchNotifications(isRefresh: true);
     _scrollController.addListener(_onScroll);
 
     // Clear unread count on opening screen
@@ -75,20 +32,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _onScroll() {
     if (_scrollController.hasClients &&
-        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 60) {
-      final total = _buildNotificationItems().length;
-      if (_displayedCount < total && !_isLoadingMore) {
-        setState(() {
-          _isLoadingMore = true;
-        });
-        Future.delayed(const Duration(milliseconds: 250), () {
-          if (mounted) {
-            setState(() {
-              _displayedCount = (_displayedCount + _pageSize).clamp(0, total);
-              _isLoadingMore = false;
-            });
-          }
-        });
+        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 80) {
+      if (_notificationController.hasMore && !_notificationController.isLoadingMore.value) {
+        _notificationController.fetchMoreNotifications();
       }
     }
   }
@@ -100,219 +46,98 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      _displayedCount = _pageSize;
-    });
-    await Future.wait([
-      _announcementController.fetchAnnouncements(),
-      _dashboardController.fetchDashboardData(),
-    ]);
-    final total = _buildNotificationItems().length;
-    NotificationController.to.markAsViewed(total);
+    await _notificationController.fetchNotifications(isRefresh: true);
+    NotificationController.to.markAsViewed(_notificationController.notifications.length);
   }
 
-  DateTime? _parseItemDateTime(String dateStr, String? timeStr, String? createdAtStr) {
-    if (createdAtStr != null && createdAtStr.trim().isNotEmpty) {
-      final parsed = DateTime.tryParse(createdAtStr.trim());
-      if (parsed != null) return parsed;
+  IconData _getModuleIcon(String module) {
+    switch (module.toLowerCase()) {
+      case 'transport':
+      case 'bus':
+      case 'vehicle':
+      case 'gps':
+        return Icons.directions_bus_rounded;
+      case 'attendance':
+      case 'student_attendance':
+      case 'teacher_attendance':
+        return Icons.fact_check_rounded;
+      case 'banner':
+        return Icons.view_carousel_rounded;
+      case 'announcement':
+        return Icons.campaign_rounded;
+      case 'callback':
+      case 'callback_request':
+        return Icons.phone_callback_rounded;
+      case 'leave':
+      case 'teacher_leave':
+      case 'student_leave':
+        return Icons.free_cancellation_rounded;
+      case 'homework':
+      case 'assignment':
+        return Icons.menu_book_rounded;
+      case 'finance':
+      case 'fee':
+      case 'payment':
+        return Icons.account_balance_wallet_rounded;
+      default:
+        return Icons.notifications_active_rounded;
     }
-    if (dateStr.trim().isEmpty) return null;
-    DateTime? baseDate = DateTime.tryParse(dateStr.trim());
-    if (baseDate == null) {
-      final parts = dateStr.trim().split(RegExp(r'[-/]'));
-      if (parts.length == 3) {
-        int? d, m, y;
-        if (parts[0].length == 4) {
-          y = int.tryParse(parts[0]);
-          m = int.tryParse(parts[1]);
-          d = int.tryParse(parts[2]);
-        } else {
-          d = int.tryParse(parts[0]);
-          m = int.tryParse(parts[1]);
-          y = int.tryParse(parts[2]);
-        }
-        if (y != null && m != null && d != null) {
-          baseDate = DateTime(y, m, d);
-        }
-      }
-    }
-    if (baseDate != null) {
-      if (timeStr != null && timeStr.trim().isNotEmpty) {
-        final t = _parseTimeParts(timeStr.trim());
-        if (t != null) {
-          return DateTime(baseDate.year, baseDate.month, baseDate.day, t.hour, t.minute, t.second);
-        }
-      }
-      return baseDate;
-    }
-    return null;
   }
 
-  _TimeParts? _parseTimeParts(String timeStr) {
-    try {
-      final upper = timeStr.trim().toUpperCase();
-      final isPm = upper.contains('PM');
-      final isAm = upper.contains('AM');
-      final digitsAndColons = upper.replaceAll(RegExp(r'[^\d:]'), '');
-      final parts = digitsAndColons.split(':');
-      if (parts.isNotEmpty) {
-        int h = int.tryParse(parts[0]) ?? 0;
-        int m = parts.length > 1 ? (int.tryParse(parts[1]) ?? 0) : 0;
-        int s = parts.length > 2 ? (int.tryParse(parts[2]) ?? 0) : 0;
-        if (isPm && h < 12) h += 12;
-        if (isAm && h == 12) h = 0;
-        return _TimeParts(h, m, s);
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  String _formatDateString(String rawDate, DateTime? parsedDt) {
-    if (parsedDt != null) {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return '${parsedDt.day.toString().padLeft(2, '0')} ${months[parsedDt.month - 1]} ${parsedDt.year}';
+  Color _getModuleColor(String module) {
+    switch (module.toLowerCase()) {
+      case 'transport':
+      case 'bus':
+      case 'vehicle':
+      case 'gps':
+        return const Color(0xFFF43F5E); // Rose Red
+      case 'attendance':
+      case 'student_attendance':
+      case 'teacher_attendance':
+        return const Color(0xFFF59E0B); // Amber / Warm Orange
+      case 'banner':
+        return const Color(0xFF8B5CF6); // Purple
+      case 'announcement':
+        return const Color(0xFF0EA5E9); // Sky Blue
+      case 'callback':
+      case 'callback_request':
+        return const Color(0xFFEF4444); // Red
+      case 'leave':
+      case 'teacher_leave':
+      case 'student_leave':
+        return const Color(0xFF10B981); // Emerald Green
+      case 'homework':
+      case 'assignment':
+        return const Color(0xFF6366F1); // Indigo
+      case 'finance':
+      case 'fee':
+      case 'payment':
+        return const Color(0xFF14B8A6); // Teal
+      default:
+        return const Color(0xFF132A60); // Navy Blue
     }
-    return rawDate.isNotEmpty ? rawDate : '';
   }
 
-  String? _formatTimeString(String? rawTime, DateTime? parsedDt) {
-    if (rawTime != null && rawTime.trim().isNotEmpty) {
-      final trimmed = rawTime.trim();
-      if (trimmed.toUpperCase().contains('AM') || trimmed.toUpperCase().contains('PM')) {
-        return trimmed;
-      }
-      final t = _parseTimeParts(trimmed);
-      if (t != null) {
-        int h = t.hour;
+  String _formatDateTime(String createdAt, String timeAgo) {
+    if (timeAgo.isNotEmpty) {
+      return timeAgo;
+    }
+    if (createdAt.isNotEmpty) {
+      final parsed = DateTime.tryParse(createdAt);
+      if (parsed != null) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        final day = parsed.day.toString().padLeft(2, '0');
+        final month = months[parsed.month - 1];
+        final year = parsed.year;
+        int h = parsed.hour;
         final period = h >= 12 ? 'PM' : 'AM';
         h = h % 12;
         if (h == 0) h = 12;
-        final m = t.minute.toString().padLeft(2, '0');
-        return '$h:$m $period';
-      }
-      return trimmed;
-    }
-    if (parsedDt != null && (parsedDt.hour != 0 || parsedDt.minute != 0)) {
-      int h = parsedDt.hour;
-      final period = h >= 12 ? 'PM' : 'AM';
-      h = h % 12;
-      if (h == 0) h = 12;
-      final m = parsedDt.minute.toString().padLeft(2, '0');
-      return '$h:$m $period';
-    }
-    return null;
-  }
-
-  List<NotificationItemModel> _buildNotificationItems() {
-    final List<NotificationItemModel> items = [];
-
-    // 1. Announcements
-    for (var ann in _announcementController.announcements) {
-      final parsedDt = _parseItemDateTime(
-        ann.fromDate,
-        ann.fromTime,
-        ann.createdAt,
-      );
-      final formattedDate = _formatDateString(ann.fromDate, parsedDt);
-      final formattedTime = _formatTimeString(ann.fromTime, parsedDt);
-
-      items.add(
-        NotificationItemModel(
-          id: ann.id.toString(),
-          title: ann.title.isNotEmpty ? ann.title : "Announcement",
-          message: ann.description.isNotEmpty ? ann.description : "New announcement posted",
-          date: formattedDate,
-          time: formattedTime,
-          category: 'Announcements',
-          color: const Color(0xFF0EA5E9),
-          icon: Icons.campaign_rounded,
-          dateTime: parsedDt,
-          sortOrder: ann.id,
-        ),
-      );
-    }
-
-    // 2. Callback Requests
-    final dashData = _dashboardController.dashboardData.value;
-    if (dashData?.callbackRequests != null) {
-      final callbacks = dashData!.callbackRequests!;
-      if (callbacks.pending > 0) {
-        final now = DateTime.now();
-        items.add(
-          NotificationItemModel(
-            id: 'callback_pending',
-            title: "Pending Callback Requests",
-            message: "You have ${callbacks.pending} pending callback request(s) to follow up.",
-            date: _formatDateString('', now),
-            time: _formatTimeString(null, now),
-            category: 'Callbacks',
-            color: const Color(0xFFEF4444),
-            icon: Icons.phone_callback_rounded,
-            dateTime: now,
-            sortOrder: 999999,
-          ),
-        );
+        final m = parsed.minute.toString().padLeft(2, '0');
+        return '$day $month $year, $h:$m $period';
       }
     }
-
-    // 3. Teacher Leave Requests
-    if (dashData?.teacherLeaves != null) {
-      final tLeaves = dashData!.teacherLeaves!;
-      if (tLeaves.totalPendingCount > 0) {
-        final now = DateTime.now();
-        items.add(
-          NotificationItemModel(
-            id: 'teacher_leave_pending',
-            title: "Teacher Leave Requests",
-            message: "You have ${tLeaves.totalPendingCount} pending teacher leave request(s).",
-            date: _formatDateString('', now),
-            time: _formatTimeString(null, now),
-            category: 'Leaves',
-            color: const Color(0xFF0D9488),
-            icon: Icons.free_cancellation_rounded,
-            dateTime: now,
-            sortOrder: 999998,
-          ),
-        );
-      }
-    }
-
-    // 4. Student Leave Requests
-    if (dashData?.studentLeaves != null) {
-      final sLeaves = dashData!.studentLeaves!;
-      if (sLeaves.totalPendingCount > 0) {
-        final now = DateTime.now();
-        items.add(
-          NotificationItemModel(
-            id: 'student_leave_pending',
-            title: "Student Leave Requests",
-            message: "You have ${sLeaves.totalPendingCount} pending student leave request(s).",
-            date: _formatDateString('', now),
-            time: _formatTimeString(null, now),
-            category: 'Leaves',
-            color: const Color(0xFF10B981),
-            icon: Icons.time_to_leave_rounded,
-            dateTime: now,
-            sortOrder: 999997,
-          ),
-        );
-      }
-    }
-
-    // Sort items: Latest notification on top (descending order)
-    items.sort((a, b) {
-      if (a.dateTime != null && b.dateTime != null) {
-        final cmp = b.dateTime!.compareTo(a.dateTime!);
-        if (cmp != 0) return cmp;
-      } else if (a.dateTime != null) {
-        return -1;
-      } else if (b.dateTime != null) {
-        return 1;
-      }
-      return b.sortOrder.compareTo(a.sortOrder);
-    });
-
-    return items;
+    return createdAt;
   }
 
   @override
@@ -334,24 +159,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
           ),
           body: Obx(() {
-            final bool isLoading = _announcementController.isLoading.value &&
-                _dashboardController.isLoading.value;
-
-            if (isLoading) {
-              return const Center(child: CircularProgressIndicator());
+            if (_notificationController.isLoading.value &&
+                _notificationController.notifications.isEmpty) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryNavy,
+                ),
+              );
             }
 
-            final allItems = _buildNotificationItems();
-            final int totalItems = allItems.length;
-
-            // Clear unread count when items are displayed
-            if (NotificationController.to.unreadCount.value > 0) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                NotificationController.to.markAsViewed(totalItems);
-              });
-            }
-
-            if (totalItems == 0) {
+            if (_notificationController.errorMessage.isNotEmpty &&
+                _notificationController.notifications.isEmpty) {
               return RefreshIndicator(
                 onRefresh: _refreshData,
                 child: SingleChildScrollView(
@@ -359,36 +177,44 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   child: Container(
                     height: MediaQuery.of(context).size.height * 0.7,
                     alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF1F5F9),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
-                            Icons.notifications_off_outlined,
-                            size: 42,
-                            color: Color(0xFF94A3B8),
+                            Icons.error_outline_rounded,
+                            size: 40,
+                            color: Color(0xFFEF4444),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "No notifications found",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        Text(
+                          _notificationController.errorMessage.value,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                             color: Color(0xFF64748B),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          "You're all caught up!",
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: Color(0xFF94A3B8),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: _refreshData,
+                          icon: const Icon(Icons.refresh_rounded, size: 18),
+                          label: const Text("Try Again"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryNavy,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
                           ),
                         ),
                       ],
@@ -398,159 +224,230 @@ class _NotificationScreenState extends State<NotificationScreen> {
               );
             }
 
-            final displayedItems = allItems.take(_displayedCount).toList();
-            final bool hasMore = _displayedCount < totalItems;
+            final notifications = _notificationController.notifications;
+
+            // Clear unread count when items are displayed
+            if (NotificationController.to.unreadCount.value > 0) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                NotificationController.to.markAsViewed(notifications.length);
+              });
+            }
+
+            if (notifications.isEmpty) {
+              return RefreshIndicator(
+                onRefresh: _refreshData,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 15,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.notifications_off_outlined,
+                            size: 48,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "No Notifications Yet",
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          "You're all caught up! New updates will appear here.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
 
             return RefreshIndicator(
               onRefresh: _refreshData,
+              color: AppColors.primaryNavy,
               child: ListView.builder(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                itemCount: displayedItems.length + (hasMore ? 1 : 0),
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 20),
+                itemCount: notifications.length +
+                    (_notificationController.isLoadingMore.value ? 1 : 0),
                 itemBuilder: (context, index) {
-                  if (index == displayedItems.length) {
+                  if (index == notifications.length) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
                       child: Center(
                         child: SizedBox(
-                          width: 22,
-                          height: 22,
+                          width: 24,
+                          height: 24,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF132A60),
+                            strokeWidth: 2.5,
+                            color: AppColors.primaryNavy,
                           ),
                         ),
                       ),
                     );
                   }
 
-                  final item = displayedItems[index];
-                  return Card(
-                    color: AppColors.cardColor,
-                    elevation: 0,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: AppColors.cardBorderRadius,
-                      side: const BorderSide(
-                        color: Colors.white,
-                        width: 1.8,
+                  final AppNotification item = notifications[index];
+                  final Color itemColor = _getModuleColor(item.module);
+                  final IconData itemIcon = _getModuleIcon(item.module);
+                  final String timeDisplay = _formatDateTime(item.createdAt, item.timeAgo);
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: item.isRead
+                          ? Colors.white
+                          : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: item.isRead
+                            ? const Color(0xFFE2E8F0)
+                            : itemColor.withValues(alpha: 0.35),
+                        width: item.isRead ? 1.0 : 1.4,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.035),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: item.color.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              item.icon,
-                              color: item.color,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Left indicator stripe for unread items
+                            if (!item.isRead)
+                              Container(
+                                width: 4.5,
+                                color: itemColor,
+                              ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 12),
+                                child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Expanded(
-                                      child: Text(
-                                        item.title,
-                                        style: const TextStyle(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
-                                          height: 1.3,
-                                        ),
+                                    // Module Icon Container
+                                    Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        color: itemColor.withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Icon(
+                                        itemIcon,
+                                        color: itemColor,
+                                        size: 21,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.end,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (item.date.isNotEmpty)
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF1F5F9),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.calendar_today_rounded,
-                                                  size: 9.5,
-                                                  color: Color(0xFF64748B),
+                                    const SizedBox(width: 12),
+                                    // Notification Content
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Top Row: Title on Left, Time Ago on Right
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  item.title,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: item.isRead
+                                                        ? FontWeight.bold
+                                                        : FontWeight.w800,
+                                                    color: const Color(0xFF0F172A),
+                                                    height: 1.35,
+                                                  ),
                                                 ),
-                                                const SizedBox(width: 3.5),
+                                              ),
+                                              if (timeDisplay.isNotEmpty) ...[
+                                                const SizedBox(width: 8),
                                                 Text(
-                                                  item.date,
+                                                  timeDisplay,
                                                   style: const TextStyle(
-                                                    fontSize: 10,
+                                                    fontSize: 11,
                                                     fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF475569),
+                                                    color: Color(0xFF64748B),
                                                   ),
                                                 ),
                                               ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
+                                          // Body Text
+                                          Text(
+                                            item.body,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w400,
+                                              color: Color(0xFF334155),
+                                              height: 1.45,
                                             ),
                                           ),
-                                        if (item.time != null && item.time!.isNotEmpty) ...[
-                                          const SizedBox(height: 3),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF0284C7).withValues(alpha: 0.09),
-                                              borderRadius: BorderRadius.circular(5),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.access_time_rounded,
-                                                  size: 9.5,
-                                                  color: Color(0xFF0284C7),
-                                                ),
-                                                const SizedBox(width: 3.5),
-                                                Text(
-                                                  item.time!,
-                                                  style: const TextStyle(
-                                                    fontSize: 9.5,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Color(0xFF0284C7),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                          const SizedBox(height: 8),
+                                          // Bottom Right Row: Read Status Ticks
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                item.isRead
+                                                    ? Icons.done_all_rounded
+                                                    : Icons.done_rounded,
+                                                size: 16,
+                                                color: item.isRead
+                                                    ? const Color(0xFF10B981)
+                                                    : const Color(0xFF94A3B8),
+                                              ),
+                                            ],
                                           ),
                                         ],
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  item.message,
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    color: Color(0xFF64748B),
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );

@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -10,44 +9,10 @@ import 'package:smart_aig_admins_app/view_models/getX/notification_controller.da
 class NotificationService extends GetxService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   static NotificationService get to => Get.find();
 
-  Future<void> _playNotificationSound() async {
-    try {
-      await _audioPlayer.stop();
-      await _audioPlayer.play(
-        UrlSource('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'),
-        volume: 1.0,
-      );
-    } catch (e) {
-      debugPrint("Audio sound play error: $e");
-    }
-  }
-
   Future<NotificationService> init() async {
-    // Enable iOS Playback Audio Category so sound plays even on silent / simulator
-    try {
-      await AudioPlayer.global.setAudioContext(
-        AudioContext(
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.playback,
-            options: const {
-              AVAudioSessionOptions.mixWithOthers,
-              AVAudioSessionOptions.duckOthers,
-            },
-          ),
-          android: const AudioContextAndroid(
-            usageType: AndroidUsageType.notification,
-            contentType: AndroidContentType.sonification,
-            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint("Error setting AudioContext: $e");
-    }
 
     // 1. Request permissions for iOS and Android
     NotificationSettings settings = await _messaging.requestPermission(
@@ -74,7 +39,7 @@ class NotificationService extends GetxService {
       sound: true,
     );
 
-    // 4. Register high priority notification channel for Android
+    // 4. Register high priority notification channel for Android with sound enabled
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
       'callback_notification_channel',
       'Callback & Alert Notifications',
@@ -86,9 +51,9 @@ class NotificationService extends GetxService {
       showBadge: true,
     );
 
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    final androidPlugin = _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(channel);
 
     const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
@@ -124,26 +89,37 @@ class NotificationService extends GetxService {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
 
+      String type = (message.data['type'] ?? message.data['module'] ?? '').toString().toLowerCase();
+
       String title = notification?.title ?? 
           message.data['title'] ?? 
           message.data['heading'] ?? 
           message.data['subject'] ?? 
-          (message.data['type']?.toString().contains('callback') == true ? 'New Callback Request 📞' : null) ??
-          'New Callback Request 📞';
+          (type.contains('banner') ? 'New Banner Published 🖼️' :
+           type.contains('announcement') ? 'New Announcement 📢' :
+           type.contains('leave') ? 'Leave Request Update 📄' :
+           type.contains('attendance') ? 'Attendance Update 📋' :
+           type.contains('callback') ? 'New Callback Request 📞' :
+           'New Alert Notification 🔔');
 
       String body = notification?.body ?? 
           message.data['body'] ?? 
           message.data['message'] ?? 
           message.data['content'] ?? 
           message.data['reason'] ?? 
-          (message.data['parent_name'] != null ? 'Callback request from ${message.data['parent_name']}' : null) ??
-          'You have received a new callback request.';
+          (message.data['parent_name'] != null ? 'Callback request from ${message.data['parent_name']}' : 'You have received a new update.');
 
       try {
         NotificationController.to.incrementUnread();
       } catch (_) {}
 
-      showLocalNotification(title, body, payload: message.data.isNotEmpty ? message.data.toString() : null);
+      bool isBanner = type.contains('banner') || title.toLowerCase().contains('banner');
+      showLocalNotification(
+        title,
+        body,
+        payload: message.data.isNotEmpty ? message.data.toString() : null,
+        playSound: isBanner ? true : true,
+      );
     });
 
     // 8. Handle when app is opened from a notification (terminated state)
@@ -281,9 +257,12 @@ class NotificationService extends GetxService {
     }
   }
 
-  Future<void> showLocalNotification(String title, String body, {String? payload}) async {
-    _playNotificationSound();
-
+  Future<void> showLocalNotification(
+    String title,
+    String body, {
+    String? payload,
+    bool playSound = true,
+  }) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'callback_notification_channel',
       'Callback & Alert Notifications',
@@ -293,6 +272,7 @@ class NotificationService extends GetxService {
       enableVibration: true,
       styleInformation: BigTextStyleInformation(''),
     );
+
     const NotificationDetails details = NotificationDetails(
       android: androidDetails,
       iOS: DarwinNotificationDetails(
@@ -313,20 +293,5 @@ class NotificationService extends GetxService {
       details,
       payload: payload,
     );
-
-    try {
-      Get.snackbar(
-        title,
-        body,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: const Color(0xFF1E293B),
-        colorText: Colors.white,
-        icon: const Icon(Icons.phone_callback_rounded, color: Colors.greenAccent),
-        duration: const Duration(seconds: 4),
-        margin: const EdgeInsets.all(12),
-        borderRadius: 12,
-        isDismissible: true,
-      );
-    } catch (_) {}
   }
 }

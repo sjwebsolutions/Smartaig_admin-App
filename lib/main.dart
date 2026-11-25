@@ -26,35 +26,42 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
     await localNotifications.initialize(initSettings);
 
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'callback_notification_channel',
-      'Callback & Alert Notifications',
-      description: 'Channel for callback requests and urgent admin alerts',
-      importance: Importance.max,
-      playSound: true,
-      enableVibration: true,
-      enableLights: true,
-      showBadge: true,
-    );
-
-    await localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-
     RemoteNotification? notification = message.notification;
+
+    String type = (message.data['type'] ?? message.data['module'] ?? '').toString().toLowerCase();
 
     String title = notification?.title ?? 
         message.data['title'] ?? 
         message.data['heading'] ?? 
         message.data['subject'] ?? 
-        'Callback Request';
+        (type.contains('banner') ? 'New Banner Published 🖼️' :
+         type.contains('announcement') ? 'New Announcement 📢' :
+         type.contains('leave') ? 'Leave Request Update 📄' :
+         type.contains('attendance') ? 'Attendance Update 📋' :
+         type.contains('callback') ? 'New Callback Request 📞' :
+         'New Alert Notification 🔔');
 
     String body = notification?.body ?? 
         message.data['body'] ?? 
         message.data['message'] ?? 
         message.data['content'] ?? 
         message.data['reason'] ?? 
-        'New callback request received.';
+        'New update received.';
+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'callback_notification_channel',
+      'Callback & Alert Notifications',
+      description: 'Channel for callback requests and urgent admin alerts',
+      importance: Importance.max,
+      playSound: true,
+      enableLights: true,
+      enableVibration: true,
+      showBadge: true,
+    );
+
+    final androidPlugin = localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(channel);
 
     int notificationId = DateTime.now().microsecondsSinceEpoch.remainder(1000000).abs();
     if (notificationId == 0) notificationId = 1;

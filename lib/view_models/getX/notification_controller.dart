@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:smart_aig_admins_app/view_models/getX/announcement_controller.dart';
-import 'package:smart_aig_admins_app/view_models/getX/dashboard_controller.dart';
+import 'package:smart_aig_admins_app/models/notification_model.dart';
+import 'package:smart_aig_admins_app/services/api_notification_service.dart';
 
 class NotificationController extends GetxController {
   static NotificationController get to {
@@ -15,15 +15,26 @@ class NotificationController extends GetxController {
   static const String _keyLastViewedTime = 'notification_last_viewed_time';
   static const String _keyLastTotalCount = 'notification_last_total_count';
 
+  final ApiNotificationService _apiService = ApiNotificationService();
+
+  final RxList<AppNotification> notifications = <AppNotification>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingMore = false.obs;
+  final RxString errorMessage = ''.obs;
   final RxInt unreadCount = 0.obs;
+
+  int currentPage = 1;
+  int lastPage = 1;
+  bool hasMore = false;
+  int retentionDays = 7;
   DateTime? lastViewedTime;
   int lastTotalCount = 0;
-  bool _isLoaded = false;
 
   @override
   void onInit() {
     super.onInit();
     _initPersistence();
+    fetchNotifications();
   }
 
   Future<void> _initPersistence() async {
@@ -34,93 +45,108 @@ class NotificationController extends GetxController {
         lastViewedTime = DateTime.tryParse(timeStr);
       }
       lastTotalCount = prefs.getInt(_keyLastTotalCount) ?? 0;
-      _isLoaded = true;
-
-      // Sync count if controllers already have data
-      syncUnreadCount();
-
-      // Listen to future data changes
-      _bindListeners();
     } catch (e) {
       debugPrint("NotificationController _initPersistence error: $e");
-      _isLoaded = true;
     }
   }
 
-  void _bindListeners() {
-    if (Get.isRegistered<AnnouncementController>()) {
-      ever(Get.find<AnnouncementController>().announcements, (_) => syncUnreadCount());
+  /// Fetches notifications from API (Page 1)
+  Future<void> fetchNotifications({bool isRefresh = false}) async {
+    if (!isRefresh && notifications.isNotEmpty && isLoading.value) return;
+
+    if (!isRefresh) {
+      isLoading.value = true;
     }
-    if (Get.isRegistered<DashboardController>()) {
-      ever(Get.find<DashboardController>().dashboardData, (_) => syncUnreadCount());
+    errorMessage.value = '';
+
+    try {
+      final response = await _apiService.getNotifications(page: 1);
+      if (response.success && response.data != null) {
+        notifications.assignAll(response.data!.notifications);
+        retentionDays = response.data!.retentionDays;
+
+        if (response.data!.pagination != null) {
+          currentPage = response.data!.pagination!.currentPage;
+          lastPage = response.data!.pagination!.lastPage;
+          hasMore = response.data!.pagination!.hasMore;
+        } else {
+          currentPage = 1;
+          lastPage = 1;
+          hasMore = false;
+        }
+
+        _calculateUnreadCount();
+      } else {
+        errorMessage.value = response.message.isNotEmpty
+            ? response.message
+            : "Failed to load notifications";
+      }
+    } catch (e) {
+      debugPrint("Error fetching notifications: $e");
+      errorMessage.value = "Failed to load notifications. Please try again.";
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  /// Calculates unread count from available data
-  void syncUnreadCount() {
-    if (!_isLoaded) return;
+  /// Fetches next page of notifications from API
+  Future<void> fetchMoreNotifications() async {
+    if (isLoadingMore.value || !hasMore) return;
 
-    final announcementController = Get.isRegistered<AnnouncementController>()
-        ? Get.find<AnnouncementController>()
-        : null;
-    final dashboardController = Get.isRegistered<DashboardController>()
-        ? Get.find<DashboardController>()
-        : null;
+    isLoadingMore.value = true;
+    final nextPage = currentPage + 1;
 
-    final dashData = dashboardController?.dashboardData.value;
-    final pendingCallbacks = dashData?.callbackRequests?.pending ?? 0;
-    final pendingTeacherLeaves = dashData?.teacherLeaves?.totalPendingCount ?? 0;
-    final pendingStudentLeaves = dashData?.studentLeaves?.totalPendingCount ?? 0;
-    final totalAnnouncements = announcementController?.totalAnnouncements ?? 0;
+    try {
+      final response = await _apiService.getNotifications(page: nextPage);
+      if (response.success && response.data != null) {
+        notifications.addAll(response.data!.notifications);
 
-    final currentTotal = totalAnnouncements +
-        pendingCallbacks +
-        pendingTeacherLeaves +
-        pendingStudentLeaves;
+        if (response.data!.pagination != null) {
+          currentPage = response.data!.pagination!.currentPage;
+          lastPage = response.data!.pagination!.lastPage;
+          hasMore = response.data!.pagination!.hasMore;
+        } else {
+          hasMore = false;
+        }
 
-    if (lastViewedTime == null) {
-      // User hasn't opened notification screen yet
-      unreadCount.value = currentTotal;
+        _calculateUnreadCount();
+      }
+    } catch (e) {
+      debugPrint("Error fetching more notifications: $e");
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  void _calculateUnreadCount() {
+    final unreadItems = notifications.where((n) => !n.isRead).length;
+    if (unreadItems > 0) {
+      unreadCount.value = unreadItems;
     } else {
-      // Calculate how many new items appeared since last view
-      if (currentTotal > lastTotalCount) {
-        unreadCount.value = currentTotal - lastTotalCount;
-      } else if (unreadCount.value < 0) {
-        unreadCount.value = 0;
+      if (lastViewedTime == null) {
+        unreadCount.value = notifications.length;
+      } else {
+        if (notifications.length > lastTotalCount) {
+          unreadCount.value = notifications.length - lastTotalCount;
+        } else if (unreadCount.value < 0) {
+          unreadCount.value = 0;
+        }
       }
     }
   }
 
-  /// Called whenever a push notification arrives
+  /// Called when push notification arrives
   void incrementUnread() {
     unreadCount.value++;
+    // Refetch to get updated API notifications list
+    fetchNotifications(isRefresh: true);
   }
 
   /// Called when user opens/views the NotificationScreen
   Future<void> markAsViewed([int? currentTotal]) async {
     unreadCount.value = 0;
     lastViewedTime = DateTime.now();
-
-    if (currentTotal != null) {
-      lastTotalCount = currentTotal;
-    } else {
-      final announcementController = Get.isRegistered<AnnouncementController>()
-          ? Get.find<AnnouncementController>()
-          : null;
-      final dashboardController = Get.isRegistered<DashboardController>()
-          ? Get.find<DashboardController>()
-          : null;
-      final dashData = dashboardController?.dashboardData.value;
-      final pendingCallbacks = dashData?.callbackRequests?.pending ?? 0;
-      final pendingTeacherLeaves = dashData?.teacherLeaves?.totalPendingCount ?? 0;
-      final pendingStudentLeaves = dashData?.studentLeaves?.totalPendingCount ?? 0;
-      final totalAnnouncements = announcementController?.totalAnnouncements ?? 0;
-
-      lastTotalCount = totalAnnouncements +
-          pendingCallbacks +
-          pendingTeacherLeaves +
-          pendingStudentLeaves;
-    }
+    lastTotalCount = currentTotal ?? notifications.length;
 
     try {
       final prefs = await SharedPreferences.getInstance();

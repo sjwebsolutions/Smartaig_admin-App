@@ -143,6 +143,8 @@ class DashboardController extends GetxController {
 
         if ((previousPending != -1 && newPending > previousPending) ||
             (previousTotal != -1 && newTotal > previousTotal)) {
+          await prefs.setInt('last_callback_pending_count', newPending);
+          await prefs.setInt('last_callback_total_count', newTotal);
           if (Get.isRegistered<NotificationService>()) {
             NotificationService.to.showLocalNotification(
               "New Callback Request 📞",
@@ -150,10 +152,11 @@ class DashboardController extends GetxController {
               payload: "callback_request",
             );
           }
-          fetchDashboardData();
+          fetchDashboardData(showLoading: false);
+        } else {
+          await prefs.setInt('last_callback_pending_count', newPending);
+          await prefs.setInt('last_callback_total_count', newTotal);
         }
-        await prefs.setInt('last_callback_pending_count', newPending);
-        await prefs.setInt('last_callback_total_count', newTotal);
       }
     } catch (_) {}
   }
@@ -164,7 +167,7 @@ class DashboardController extends GetxController {
       if (kDebugMode) {
         debugPrint("DEBUG: fetchDashboardData started");
       }
-      if (showLoading || dashboardData.value == null) {
+      if (showLoading && dashboardData.value == null) {
         isLoading.value = true;
       }
       hasError.value = false;
@@ -242,7 +245,7 @@ class DashboardController extends GetxController {
         debugPrint("DEBUG: Error in fetchDashboardData: $e");
       }
     } finally {
-      if (showLoading) {
+      if (showLoading && isLoading.value) {
         final elapsedTime = DateTime.now().difference(startTime).inMilliseconds;
         const minShimmerTimeMs = 800; // Ensures smooth visible shimmer effect (~800ms)
         if (elapsedTime < minShimmerTimeMs) {

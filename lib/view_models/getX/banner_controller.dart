@@ -1,6 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_aig_admins_app/models/banner_model.dart';
 import 'package:smart_aig_admins_app/models/banner_classes_model.dart';
@@ -10,7 +10,6 @@ import '../../utils/custom_snackbar.dart';
 
 class BannerController extends GetxController {
   final BannerService _service = BannerService();
-  final AudioPlayer _audioPlayer = AudioPlayer();
 
   var isLoading = true.obs;
   var banners = <BannerModel>[].obs;
@@ -19,6 +18,7 @@ class BannerController extends GetxController {
   var bannerClasses = <BannerClass>[].obs;
   
   var isPublishing = false.obs;
+  Timer? _bannerCheckTimer;
 
   // Banner counts for badges
   int get totalBanners => banners.length;
@@ -29,18 +29,43 @@ class BannerController extends GetxController {
     super.onInit();
     fetchBanners();
     fetchBannerClasses();
+    _startBannerPolling();
   }
 
-  Future<void> _playNotificationSound() async {
+  void _startBannerPolling() {
+    _bannerCheckTimer?.cancel();
+    _bannerCheckTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _checkNewBannersInBackground();
+    });
+  }
+
+  Future<void> _checkNewBannersInBackground() async {
     try {
-      await _audioPlayer.play(AssetSource('sounds/ce49b0f5_1785475380_caac956a_1 (3).mp3'));
+      final response = await _service.getBanners();
+      if (response.success && response.publishedBanners != null) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        final int previousCount = prefs.getInt('last_seen_banner_count') ?? -1;
+        if (previousCount != -1 && response.publishedBanners!.length > previousCount) {
+          await prefs.setInt('last_seen_banner_count', response.publishedBanners!.length);
+          if (Get.isRegistered<NotificationService>()) {
+            final firstTitle = response.publishedBanners!.first.bannerName.isNotEmpty 
+                ? response.publishedBanners!.first.bannerName
+                : "A new banner has been published.";
+            NotificationService.to.showLocalNotification(
+              "New Banner Published 🖼️",
+              firstTitle,
+              payload: "banner",
+              playSound: true,
+            );
+          }
+          banners.assignAll(response.publishedBanners!);
+        } else {
+          await prefs.setInt('last_seen_banner_count', response.publishedBanners!.length);
+        }
+      }
     } catch (e) {
-      debugPrint("Error playing sound: $e");
+      debugPrint("Error checking new banners: $e");
     }
-  }
-
-  void playClickSound() {
-    _playNotificationSound();
   }
 
   Future<void> fetchBannerClasses() async {
@@ -134,7 +159,6 @@ class BannerController extends GetxController {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
         final int previousCount = prefs.getInt('last_seen_banner_count') ?? -1;
         if (previousCount != -1 && response.publishedBanners!.length > previousCount) {
-          _playNotificationSound();
           if (Get.isRegistered<NotificationService>()) {
             final firstTitle = response.publishedBanners!.first.bannerName.isNotEmpty 
                 ? response.publishedBanners!.first.bannerName
@@ -143,6 +167,7 @@ class BannerController extends GetxController {
               "New Banner Published 🖼️",
               firstTitle,
               payload: "banner",
+              playSound: true,
             );
           }
         }
@@ -156,5 +181,11 @@ class BannerController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    _bannerCheckTimer?.cancel();
+    super.onClose();
   }
 }
